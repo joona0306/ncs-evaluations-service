@@ -73,7 +73,7 @@ export function CourseTeachers({ courseId }: CourseTeachersProps) {
       console.error("모든 훈련교사 로드 실패:", error);
       setAllTeachers([]);
     }
-  }, []);
+  }, [selectedTeacher]);
 
   useEffect(() => {
     loadTeachers();

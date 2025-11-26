@@ -144,6 +144,28 @@ export function NewEvaluationForm({
     }
   }, [evaluation, searchParams]);
 
+  const loadSubmissions = useCallback(async () => {
+    if (!selectedUnit || !selectedStudent) return;
+
+    try {
+      const response = await fetch(
+        `/api/submissions?competency_unit_id=${selectedUnit}&student_id=${selectedStudent}`
+      );
+
+      if (!response.ok) {
+        console.error("과제물 조회 오류");
+        setSubmissions([]);
+        return;
+      }
+
+      const data = await response.json();
+      setSubmissions(data || []);
+    } catch (error: any) {
+      console.error("과제물 로드 실패:", error);
+      setSubmissions([]);
+    }
+  }, [selectedUnit, selectedStudent]);
+
   // URL 파라미터로 전달된 경우 초기 데이터 로드
   useEffect(() => {
     if (!evaluation && selectedUnit) {
@@ -304,28 +326,6 @@ export function NewEvaluationForm({
       setStudents([]);
     }
   }, [selectedCourse]);
-
-  const loadSubmissions = useCallback(async () => {
-    if (!selectedUnit || !selectedStudent) return;
-
-    try {
-      const response = await fetch(
-        `/api/submissions?competency_unit_id=${selectedUnit}&student_id=${selectedStudent}`
-      );
-
-      if (!response.ok) {
-        console.error("과제물 조회 오류");
-        setSubmissions([]);
-        return;
-      }
-
-      const data = await response.json();
-      setSubmissions(data || []);
-    } catch (error: any) {
-      console.error("과제물 로드 실패:", error);
-      setSubmissions([]);
-    }
-  }, [selectedUnit, selectedStudent]);
 
   useEffect(() => {
     if (evaluation) {

@@ -66,7 +66,7 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
       console.error("모든 훈련생 로드 실패:", error);
       setAllStudents([]);
     }
-  }, []);
+  }, [selectedStudent]);
 
   useEffect(() => {
     loadStudents();
