@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("profiles")
-      .select("id, full_name, email")
+      .select("id, full_name, email, role, phone, approved, created_at")
       .order("created_at", { ascending: false });
 
     if (role) {

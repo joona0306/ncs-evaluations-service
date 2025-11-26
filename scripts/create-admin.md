@@ -5,6 +5,7 @@
 ## 방법 1: Supabase 대시보드에서 생성 (권장)
 
 ### 1단계: 사용자 생성
+
 1. Supabase 대시보드에 로그인
 2. **Authentication** > **Users** 메뉴로 이동
 3. **Add user** 버튼 클릭
@@ -15,23 +16,29 @@
 5. **Create user** 클릭
 
 ### 2단계: 사용자 UUID 확인
+
 1. 생성된 사용자를 클릭하여 상세 정보 확인
 2. **UUID** 값을 복사 (예: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`)
 
 ### 3단계: 프로필 생성
+
 1. **SQL Editor**로 이동
 2. 다음 쿼리를 실행 (UUID와 이메일을 실제 값으로 변경):
 
 ```sql
+-- 프로필이 없으면 생성, 있으면 업데이트
 INSERT INTO public.profiles (id, email, full_name, role)
 VALUES (
-  '여기에_실제_UUID_입력',
+  'UID 입력',
   'admin@example.com',
   '시스템 관리자',
   'admin'
 )
-ON CONFLICT (id) DO UPDATE
-SET role = 'admin';
+ON CONFLICT (id)
+DO UPDATE SET
+  email = EXCLUDED.email,
+  full_name = EXCLUDED.full_name,
+  role = EXCLUDED.role;
 ```
 
 ## 방법 2: SQL 스크립트 사용
@@ -48,12 +55,13 @@ SET role = 'admin';
 ## 문제 해결
 
 ### 프로필이 생성되지 않는 경우
+
 - UUID가 정확한지 확인하세요
 - 사용자가 auth.users 테이블에 존재하는지 확인하세요
 - RLS 정책이 프로필 생성을 막고 있지 않은지 확인하세요
 
 ### 로그인이 안 되는 경우
+
 - 이메일과 비밀번호가 정확한지 확인하세요
 - Auto Confirm User가 체크되어 있는지 확인하세요
 - 프로필의 role이 'admin'으로 설정되어 있는지 확인하세요
-
