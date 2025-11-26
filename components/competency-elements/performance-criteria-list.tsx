@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PerformanceCriteriaForm } from "./performance-criteria-form";
@@ -28,11 +28,7 @@ export function PerformanceCriteriaList({
   >();
   const canManage = useCanManage();
 
-  useEffect(() => {
-    loadCriteria();
-  }, [competencyElementId]);
-
-  const loadCriteria = async () => {
+  const loadCriteria = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -52,7 +48,11 @@ export function PerformanceCriteriaList({
     } finally {
       setLoading(false);
     }
-  };
+  }, [competencyElementId]);
+
+  useEffect(() => {
+    loadCriteria();
+  }, [loadCriteria]);
 
   const handleDelete = async (criteriaId: string) => {
     if (!confirm("이 수행준거를 삭제하시겠습니까?")) return;

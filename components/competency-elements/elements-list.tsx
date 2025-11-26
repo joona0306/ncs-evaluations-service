@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ElementForm } from "./element-form";
@@ -25,11 +25,7 @@ export function CompetencyElementsList({
   >();
   const canManage = useCanManage(); // ✨ Zustand hook
 
-  useEffect(() => {
-    loadElements();
-  }, [competencyUnitId]);
-
-  const loadElements = async () => {
+  const loadElements = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -49,7 +45,11 @@ export function CompetencyElementsList({
     } finally {
       setLoading(false);
     }
-  };
+  }, [competencyUnitId]);
+
+  useEffect(() => {
+    loadElements();
+  }, [loadElements]);
 
   const handleDelete = async (elementId: string) => {
     if (!confirm("이 능력단위요소를 삭제하시겠습니까?")) return;

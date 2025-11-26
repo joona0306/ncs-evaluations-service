@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,10 +64,13 @@ function SubmissionImagePreview({ submissionId }: { submissionId: string }) {
 
   return (
     <div className="mt-2">
-      <img
+      <Image
         src={imageUrl}
         alt="과제물 미리보기"
+        width={800}
+        height={600}
         className="max-w-full h-auto max-h-96 border rounded"
+        unoptimized
         onError={() => {
           setError("이미지를 표시할 수 없습니다.");
         }}
@@ -140,19 +144,6 @@ export function NewEvaluationForm({
     }
   }, [evaluation, searchParams]);
 
-  useEffect(() => {
-    if (evaluation) {
-      loadEvaluationData();
-    }
-  }, [evaluation]);
-
-  useEffect(() => {
-    if (selectedCourse) {
-      loadCompetencyUnits();
-      loadStudents();
-    }
-  }, [selectedCourse]);
-
   // URL 파라미터로 전달된 경우 초기 데이터 로드
   useEffect(() => {
     if (!evaluation && selectedUnit) {
@@ -193,9 +184,9 @@ export function NewEvaluationForm({
       setSubmissions([]);
       setSelectedSubmissionId("");
     }
-  }, [selectedUnit, selectedStudent]);
+  }, [selectedUnit, selectedStudent, loadSubmissions]);
 
-  const loadEvaluationData = async () => {
+  const loadEvaluationData = useCallback(async () => {
     if (!evaluation) return;
 
     try {
@@ -234,9 +225,22 @@ export function NewEvaluationForm({
         `평가 데이터를 불러오는 중 오류가 발생했습니다: ${error.message}`
       );
     }
-  };
+  }, [evaluation]);
 
-  const loadCompetencyUnits = async () => {
+  useEffect(() => {
+    if (evaluation) {
+      loadEvaluationData();
+    }
+  }, [evaluation, loadEvaluationData]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadCompetencyUnits();
+      loadStudents();
+    }
+  }, [selectedCourse, loadCompetencyUnits, loadStudents]);
+
+  const loadCompetencyUnits = useCallback(async () => {
     if (!selectedCourse) return;
 
     try {
@@ -270,9 +274,9 @@ export function NewEvaluationForm({
       setError(`능력단위 로드 중 오류가 발생했습니다: ${err.message}`);
       setCompetencyUnits([]);
     }
-  };
+  }, [selectedCourse, evaluation]);
 
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     if (!selectedCourse) return;
 
     try {
@@ -299,9 +303,9 @@ export function NewEvaluationForm({
       console.error("훈련생 로드 실패:", error);
       setStudents([]);
     }
-  };
+  }, [selectedCourse]);
 
-  const loadSubmissions = async () => {
+  const loadSubmissions = useCallback(async () => {
     if (!selectedUnit || !selectedStudent) return;
 
     try {
@@ -321,7 +325,29 @@ export function NewEvaluationForm({
       console.error("과제물 로드 실패:", error);
       setSubmissions([]);
     }
-  };
+  }, [selectedUnit, selectedStudent]);
+
+  useEffect(() => {
+    if (evaluation) {
+      loadEvaluationData();
+    }
+  }, [evaluation, loadEvaluationData]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadCompetencyUnits();
+      loadStudents();
+    }
+  }, [selectedCourse, loadCompetencyUnits, loadStudents]);
+
+  useEffect(() => {
+    if (selectedUnit && selectedStudent) {
+      loadSubmissions();
+    } else {
+      setSubmissions([]);
+      setSelectedSubmissionId("");
+    }
+  }, [selectedUnit, selectedStudent, loadSubmissions]);
 
   const loadElements = async () => {
     if (!selectedUnit) return;

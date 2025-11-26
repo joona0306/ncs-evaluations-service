@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -40,20 +40,7 @@ export function EvaluationForm({
   const [comments, setComments] = useState(evaluation?.comments || "");
   const [status, setStatus] = useState(evaluation?.status || "draft");
 
-  useEffect(() => {
-    if (evaluation) {
-      loadEvaluationData();
-    }
-  }, [evaluation]);
-
-  useEffect(() => {
-    if (selectedCourse) {
-      loadCompetencyUnits();
-      loadStudents();
-    }
-  }, [selectedCourse]);
-
-  const loadEvaluationData = async () => {
+  const loadEvaluationData = useCallback(async () => {
     if (!evaluation) return;
 
     const { data: evalData } = await supabase
@@ -76,9 +63,9 @@ export function EvaluationForm({
       setComments(evaluation.comments || "");
       setStatus(evaluation.status);
     }
-  };
+  }, [evaluation, supabase]);
 
-  const loadCompetencyUnits = async () => {
+  const loadCompetencyUnits = useCallback(async () => {
     const { data } = await supabase
       .from("competency_units")
       .select("*")
@@ -90,9 +77,9 @@ export function EvaluationForm({
         setSelectedUnit(data[0].id);
       }
     }
-  };
+  }, [selectedCourse, evaluation, supabase]);
 
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     const { data } = await supabase
       .from("course_students")
       .select(
@@ -122,7 +109,20 @@ export function EvaluationForm({
         }));
       setStudents(studentList);
     }
-  };
+  }, [selectedCourse, supabase]);
+
+  useEffect(() => {
+    if (evaluation) {
+      loadEvaluationData();
+    }
+  }, [evaluation, loadEvaluationData]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadCompetencyUnits();
+      loadStudents();
+    }
+  }, [selectedCourse, loadCompetencyUnits, loadStudents]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

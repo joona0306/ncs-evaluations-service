@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,12 +25,7 @@ export function CourseTeachers({ courseId }: CourseTeachersProps) {
   const [selectedTeacher, setSelectedTeacher] = useState("");
   const canManage = useCanManage();
 
-  useEffect(() => {
-    loadTeachers();
-    loadAllTeachers();
-  }, [courseId]);
-
-  const loadTeachers = async () => {
+  const loadTeachers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -52,9 +47,9 @@ export function CourseTeachers({ courseId }: CourseTeachersProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
 
-  const loadAllTeachers = async () => {
+  const loadAllTeachers = useCallback(async () => {
     try {
       const response = await fetch(`/api/profiles?role=teacher`);
 
@@ -78,7 +73,12 @@ export function CourseTeachers({ courseId }: CourseTeachersProps) {
       console.error("모든 훈련교사 로드 실패:", error);
       setAllTeachers([]);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadTeachers();
+    loadAllTeachers();
+  }, [loadTeachers, loadAllTeachers]);
 
   const handleAdd = async () => {
     if (!selectedTeacher) return;

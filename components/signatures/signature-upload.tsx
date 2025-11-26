@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,10 +64,13 @@ export function SignatureUpload({ onSave, onCancel }: SignatureUploadProps) {
 
       {preview && (
         <div className="border rounded-lg p-4 bg-white">
-          <img
+          <Image
             src={preview}
             alt="서명 미리보기"
+            width={400}
+            height={256}
             className="max-w-full h-auto max-h-64 mx-auto"
+            unoptimized
           />
         </div>
       )}

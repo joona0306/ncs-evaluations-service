@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
@@ -18,12 +18,7 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
   const [selectedStudent, setSelectedStudent] = useState("");
   const canManage = useCanManage();
 
-  useEffect(() => {
-    loadStudents();
-    loadAllStudents();
-  }, [courseId]);
-
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -45,9 +40,9 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
 
-  const loadAllStudents = async () => {
+  const loadAllStudents = useCallback(async () => {
     try {
       const response = await fetch(`/api/profiles?role=student`);
 
@@ -71,7 +66,12 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
       console.error("모든 훈련생 로드 실패:", error);
       setAllStudents([]);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadStudents();
+    loadAllStudents();
+  }, [loadStudents, loadAllStudents]);
 
   const handleAdd = async () => {
     if (!selectedStudent) return;

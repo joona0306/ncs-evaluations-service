@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,7 @@ export function NewEvaluationDetail({
   const [submissionImageUrl, setSubmissionImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, [evaluation.id]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       // 능력단위요소 로드
@@ -99,7 +95,11 @@ export function NewEvaluationDetail({
     } finally {
       setLoading(false);
     }
-  };
+  }, [evaluation.id, evaluation.competency_unit_id, evaluation.submission_id]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // 점수 계산 (수행준거 기반)
   const calculateScores = () => {

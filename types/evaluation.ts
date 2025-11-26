@@ -64,6 +64,7 @@ export interface Evaluation {
   evaluated_at?: string;
   total_score?: number; // 100점 만점 환산 점수
   raw_total_score?: number; // 원점수 합계
+  submission_id?: string | null;
   created_at: string;
   updated_at: string;
   competency_units?: any;
