@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +30,8 @@ export function NewEvaluationDetail({
   >([]);
   const [elements, setElements] = useState<CompetencyElement[]>([]);
   const [signatures, setSignatures] = useState<any[]>([]);
+  const [submission, setSubmission] = useState<any>(null);
+  const [submissionImageUrl, setSubmissionImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,6 +71,28 @@ export function NewEvaluationDetail({
       if (sigResponse.ok) {
         const sigData = await sigResponse.json();
         setSignatures(sigData || []);
+      }
+
+      // 과제물 데이터 로드
+      if (evaluation.submission_id) {
+        const submissionResponse = await fetch(
+          `/api/submissions/${evaluation.submission_id}`
+        );
+        if (submissionResponse.ok) {
+          const submissionData = await submissionResponse.json();
+          setSubmission(submissionData);
+
+          // 이미지 타입인 경우 이미지 URL 로드
+          if (submissionData.submission_type === "image" && submissionData.file_url) {
+            const imageResponse = await fetch(
+              `/api/submissions/image?id=${evaluation.submission_id}`
+            );
+            if (imageResponse.ok) {
+              const imageData = await imageResponse.json();
+              setSubmissionImageUrl(imageData.url);
+            }
+          }
+        }
       }
     } catch (error: any) {
       console.error("평가 데이터 로드 실패:", error);
@@ -156,6 +181,83 @@ export function NewEvaluationDetail({
               </div>
             )}
           </div>
+
+          {/* 과제물 정보 */}
+          {submission && (
+            <div className="mt-6 pt-6 border-t">
+              <h4 className="font-semibold mb-4">제출된 과제물</h4>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">제출 유형</p>
+                  <p className="font-medium">
+                    {submission.submission_type === "image" ? "이미지" : "URL"}
+                  </p>
+                </div>
+                {submission.submission_type === "image" && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">이미지</p>
+                    {submissionImageUrl ? (
+                      <div className="space-y-2">
+                        <div className="border rounded p-2 bg-white">
+                          <Image
+                            src={submissionImageUrl}
+                            alt="과제물 이미지"
+                            width={600}
+                            height={400}
+                            className="max-w-full h-auto max-h-96 mx-auto"
+                            unoptimized
+                          />
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            window.open(
+                              `/api/submissions/download?id=${submission.id}`,
+                              "_blank"
+                            );
+                          }}
+                        >
+                          다운로드
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">이미지를 불러오는 중...</p>
+                    )}
+                  </div>
+                )}
+                {submission.submission_type === "url" && submission.url && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">URL</p>
+                    <a
+                      href={submission.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline break-all"
+                    >
+                      {submission.url}
+                    </a>
+                  </div>
+                )}
+                {submission.comments && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">코멘트</p>
+                    <p className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded">
+                      {submission.comments}
+                    </p>
+                  </div>
+                )}
+                {submission.submitted_at && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">제출일</p>
+                    <p className="text-sm">
+                      {new Date(submission.submitted_at).toLocaleString("ko-KR")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* 서명 정보 */}
           {signatures.length > 0 && (
@@ -173,10 +275,13 @@ export function NewEvaluationDetail({
                         {isTeacher ? "훈련교사 서명" : isStudent ? "훈련생 서명" : "서명"}
                       </p>
                       <div className="border rounded p-2 bg-white">
-                        <img
+                        <Image
                           src={sig.signature_data}
                           alt={`${signerName} 서명`}
+                          width={200}
+                          height={80}
                           className="max-w-full h-auto max-h-20"
+                          unoptimized
                         />
                       </div>
                       <div className="flex items-center justify-between">

@@ -276,19 +276,22 @@ export function EvaluationsList({ profile }: EvaluationsListProps) {
                                             상세보기
                                           </Button>
                                         </Link>
-                                        <Button
-                                          size="sm"
-                                          onClick={() =>
-                                            handleEvaluate(
-                                              competency_unit.id,
-                                              student_id,
-                                              latestSubmission?.id,
-                                              evaluation.id
-                                            )
-                                          }
-                                        >
-                                          수정하기
-                                        </Button>
+                                        {/* 과제물이 제출된 평가는 수정하기 버튼 숨김 */}
+                                        {!latestSubmission && (
+                                          <Button
+                                            size="sm"
+                                            onClick={() =>
+                                              handleEvaluate(
+                                                competency_unit.id,
+                                                student_id,
+                                                latestSubmission?.id,
+                                                evaluation.id
+                                              )
+                                            }
+                                          >
+                                            수정하기
+                                          </Button>
+                                        )}
                                       </>
                                     ) : (
                                       <Button
@@ -304,7 +307,8 @@ export function EvaluationsList({ profile }: EvaluationsListProps) {
                                         {latestSubmission ? "평가하기" : "평가 시작"}
                                       </Button>
                                     )}
-                                    {latestSubmission && (
+                                    {/* 과제물이 제출된 평가는 다운로드/URL 열기 버튼 숨김 */}
+                                    {latestSubmission && !evaluation && (
                                       <Button
                                         variant="outline"
                                         size="sm"
