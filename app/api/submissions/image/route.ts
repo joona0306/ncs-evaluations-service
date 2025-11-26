@@ -10,11 +10,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 교사와 관리자만 조회 가능
-    if (profile.role !== "admin" && profile.role !== "teacher") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
     const { searchParams } = new URL(request.url);
     const submissionId = searchParams.get("id");
     const filePath = searchParams.get("path");
@@ -64,8 +59,17 @@ export async function GET(request: Request) {
         competencyUnit: submission.competency_units,
       });
 
-      // 권한 확인: 교사는 해당 훈련과정의 교사여야 함
-      if (profile.role === "teacher") {
+      // 권한 확인
+      if (profile.role === "student") {
+        // 학생은 자신이 제출한 과제물만 볼 수 있음
+        if (submission.student_id !== profile.id) {
+          return NextResponse.json(
+            { error: "Forbidden: You can only view your own submissions" },
+            { status: 403 }
+          );
+        }
+      } else if (profile.role === "teacher") {
+        // 교사는 해당 훈련과정의 교사여야 함
         const courseId = submission.competency_units?.course_id || 
                          submission.competency_units?.training_courses?.id;
         if (courseId) {
@@ -109,6 +113,12 @@ export async function GET(request: Request) {
             { status: 403 }
           );
         }
+      } else if (profile.role !== "admin") {
+        // 관리자가 아닌 다른 역할은 접근 불가
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 }
+        );
       }
 
       // 이미지 타입이 아니면 오류
@@ -150,7 +160,14 @@ export async function GET(request: Request) {
         path: actualPath,
       });
     } else if (filePath) {
-      // 직접 경로로 조회 (교사/관리자만)
+      // 직접 경로로 조회 (교사/관리자만, 학생은 submissionId를 통해 접근해야 함)
+      if (profile.role === "student") {
+        return NextResponse.json(
+          { error: "Forbidden: Students cannot access files by path" },
+          { status: 403 }
+        );
+      }
+
       const { data: signedUrlData, error: urlError } = await supabase.storage
         .from("submissions")
         .createSignedUrl(filePath, 3600);

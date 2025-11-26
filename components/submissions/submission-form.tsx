@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,9 +34,7 @@ export function SubmissionForm({
     (existingSubmission?.submission_type as "image" | "url") || "image"
   );
   const [file, setFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(
-    existingSubmission?.file_url || null
-  );
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [url, setUrl] = useState<string>(existingSubmission?.url ?? "");
   const [comments, setComments] = useState<string>(
     existingSubmission?.comments ?? ""
@@ -44,6 +42,24 @@ export function SubmissionForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 기존 제출물이 이미지인 경우 API를 통해 이미지 URL 로드
+  useEffect(() => {
+    if (existingSubmission?.submission_type === "image" && existingSubmission?.id) {
+      const loadImageUrl = async () => {
+        try {
+          const response = await fetch(`/api/submissions/image?id=${existingSubmission.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setFilePreview(data.url);
+          }
+        } catch (err) {
+          console.error("이미지 URL 로드 실패:", err);
+        }
+      };
+      loadImageUrl();
+    }
+  }, [existingSubmission]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
