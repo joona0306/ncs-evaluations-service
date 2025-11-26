@@ -243,6 +243,7 @@ export async function PUT(request: Request) {
       comments,
       status,
       evaluated_at,
+      submission_id,
       element_scores, // 수행준거별 점수 (criteria_id 포함)
     } = body;
 
