@@ -126,23 +126,30 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
   };
 
   const handleStatusChange = async (studentId: string, status: string) => {
+    setLoading(true);
+    setError(null);
     try {
-      const { error: updateError } = await supabase
-        .from("course_students")
-        .update({ status })
-        .eq("course_id", courseId)
-        .eq("student_id", studentId);
+      const response = await fetch("/api/course-students", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          course_id: courseId,
+          student_id: studentId,
+          status,
+        }),
+      });
 
-      if (updateError) {
-        console.error("상태 변경 오류:", updateError);
-        setError(`상태 변경에 실패했습니다: ${updateError.message}`);
-        return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "상태 변경에 실패했습니다.");
       }
 
       loadStudents();
     } catch (error: any) {
       console.error("상태 변경 중 예외 발생:", error);
       setError(`상태 변경 중 예외 발생: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 

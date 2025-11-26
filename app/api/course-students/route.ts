@@ -119,6 +119,50 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const profile = await getCurrentUserProfile();
+    
+    if (!profile || profile.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { course_id, student_id, status } = body;
+
+    if (!course_id || !student_id || !status) {
+      return NextResponse.json(
+        { error: "course_id, student_id, and status are required" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from("course_students")
+      .update({ status })
+      .eq("course_id", course_id)
+      .eq("student_id", student_id);
+
+    if (error) {
+      console.error("훈련생 상태 변경 오류:", error);
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("훈련생 상태 변경 실패:", error);
+    return NextResponse.json(
+      { error: error.message || "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const profile = await getCurrentUserProfile();
