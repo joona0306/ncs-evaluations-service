@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,21 +17,7 @@ export default function EvaluationSchedulesPage() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!profile) {
-      router.push("/login");
-      return;
-    }
-
-    if (profile.role !== "admin" && profile.role !== "teacher") {
-      router.push("/dashboard");
-      return;
-    }
-
-    loadCourses();
-  }, [profile, router]);
-
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     try {
       const response = await fetch("/api/courses", { cache: "no-store" });
       if (!response.ok) {
@@ -47,7 +33,21 @@ export default function EvaluationSchedulesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCourseId]);
+
+  useEffect(() => {
+    if (!profile) {
+      router.push("/login");
+      return;
+    }
+
+    if (profile.role !== "admin" && profile.role !== "teacher") {
+      router.push("/dashboard");
+      return;
+    }
+
+    loadCourses();
+  }, [profile, router, loadCourses]);
 
   if (loading) {
     return (

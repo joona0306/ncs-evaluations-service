@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { SignatureModal } from "@/components/signatures/signature-modal";
@@ -294,11 +295,14 @@ export default function SignEvaluationPage() {
                         서명일:{" "}
                         {new Date(sig.signed_at).toLocaleString("ko-KR")}
                       </p>
-                      <img
+                      <Image
                         key={`sig-${sig.id}-${sig.signed_at}-${sig.updated_at || sig.signed_at}`}
                         src={sig.signature_data}
                         alt="서명"
+                        width={400}
+                        height={128}
                         className="max-w-full h-auto max-h-32 mx-auto border rounded bg-white p-2"
+                        unoptimized
                       />
                       <div className="flex gap-2 justify-center">
                         <Button
@@ -401,11 +405,14 @@ export default function SignEvaluationPage() {
                           )}
                         </div>
                       </div>
-                    <img
+                    <Image
                       key={`sig-${sig.id}-${sig.signed_at}-${sig.updated_at || sig.signed_at}`}
                       src={sig.signature_data}
                       alt="서명"
+                      width={400}
+                      height={128}
                       className="max-w-full h-auto max-h-32 mt-2 border rounded"
+                      unoptimized
                     />
                     </div>
                   );
