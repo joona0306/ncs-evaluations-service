@@ -249,19 +249,6 @@ export function NewEvaluationForm({
     }
   }, [evaluation]);
 
-  useEffect(() => {
-    if (evaluation) {
-      loadEvaluationData();
-    }
-  }, [evaluation, loadEvaluationData]);
-
-  useEffect(() => {
-    if (selectedCourse) {
-      loadCompetencyUnits();
-      loadStudents();
-    }
-  }, [selectedCourse, loadCompetencyUnits, loadStudents]);
-
   const loadCompetencyUnits = useCallback(async () => {
     if (!selectedCourse) return;
 
@@ -326,6 +313,19 @@ export function NewEvaluationForm({
       setStudents([]);
     }
   }, [selectedCourse]);
+
+  useEffect(() => {
+    if (evaluation) {
+      loadEvaluationData();
+    }
+  }, [evaluation, loadEvaluationData]);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadCompetencyUnits();
+      loadStudents();
+    }
+  }, [selectedCourse, loadCompetencyUnits, loadStudents]);
 
   useEffect(() => {
     if (evaluation) {
