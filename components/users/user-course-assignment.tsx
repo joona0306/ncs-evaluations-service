@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
@@ -20,24 +20,7 @@ export function UserCourseAssignment({
   const [selectedCourse, setSelectedCourse] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadCourses();
-    loadAssignedCourses();
-  }, [userId]);
-
-  const loadCourses = async () => {
-    try {
-      const response = await fetch("/api/courses");
-      if (response.ok) {
-        const data = await response.json();
-        setCourses(data || []);
-      }
-    } catch (error) {
-      console.error("훈련과정 로드 오류:", error);
-    }
-  };
-
-  const loadAssignedCourses = async () => {
+  const loadAssignedCourses = useCallback(async () => {
     try {
       if (userRole === "teacher") {
         const response = await fetch(`/api/course-teachers?teacher_id=${userId}`);
@@ -57,6 +40,23 @@ export function UserCourseAssignment({
       }
     } catch (error) {
       console.error("배정된 훈련과정 로드 오류:", error);
+    }
+  }, [userId, userRole]);
+
+  useEffect(() => {
+    loadCourses();
+    loadAssignedCourses();
+  }, [userId, loadAssignedCourses]);
+
+  const loadCourses = async () => {
+    try {
+      const response = await fetch("/api/courses");
+      if (response.ok) {
+        const data = await response.json();
+        setCourses(data || []);
+      }
+    } catch (error) {
+      console.error("훈련과정 로드 오류:", error);
     }
   };
 

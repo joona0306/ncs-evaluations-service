@@ -85,7 +85,7 @@ export async function PATCH(
     // 기존 평가일정 조회
     const { data: existing } = await supabase
       .from("evaluation_schedules")
-      .select("competency_unit_id, competency_units(course_id)")
+      .select("competency_unit_id, competency_units(id, course_id)")
       .eq("id", params.id)
       .single();
 
@@ -98,7 +98,10 @@ export async function PATCH(
 
     // 교사는 자신이 담당하는 과정의 평가일정만 수정 가능
     if (profile.role === "teacher") {
-      const courseId = existing.competency_units?.course_id;
+      const competencyUnit = Array.isArray(existing.competency_units) 
+        ? existing.competency_units[0] 
+        : existing.competency_units;
+      const courseId = competencyUnit?.course_id;
       if (courseId) {
         const { data: courseTeacher } = await supabase
           .from("course_teachers")
@@ -167,7 +170,7 @@ export async function DELETE(
     // 기존 평가일정 조회
     const { data: existing } = await supabase
       .from("evaluation_schedules")
-      .select("competency_unit_id, competency_units(course_id)")
+      .select("competency_unit_id, competency_units(id, course_id)")
       .eq("id", params.id)
       .single();
 
@@ -180,7 +183,10 @@ export async function DELETE(
 
     // 교사는 자신이 담당하는 과정의 평가일정만 삭제 가능
     if (profile.role === "teacher") {
-      const courseId = existing.competency_units?.course_id;
+      const competencyUnit = Array.isArray(existing.competency_units) 
+        ? existing.competency_units[0] 
+        : existing.competency_units;
+      const courseId = competencyUnit?.course_id;
       if (courseId) {
         const { data: courseTeacher } = await supabase
           .from("course_teachers")

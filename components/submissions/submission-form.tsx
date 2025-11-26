@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -234,10 +235,13 @@ export function SubmissionForm({
               />
               {filePreview && (
                 <div className="mt-4">
-                  <img
+                  <Image
                     src={filePreview}
                     alt="미리보기"
+                    width={600}
+                    height={400}
                     className="max-w-full h-auto max-h-64 border rounded"
+                    unoptimized
                   />
                 </div>
               )}
