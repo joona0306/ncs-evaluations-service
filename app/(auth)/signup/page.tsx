@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,29 @@ export default function SignupPage() {
   const [role, setRole] = useState<"teacher" | "student">("student");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
   const router = useRouter();
+
+  // 쿨다운 타이머
+  useEffect(() => {
+    if (cooldownSeconds !== null && cooldownSeconds > 0) {
+      const timer = setTimeout(() => {
+        setCooldownSeconds(cooldownSeconds - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (cooldownSeconds === 0) {
+      setCooldownSeconds(null);
+    }
+  }, [cooldownSeconds]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 이미 로딩 중이거나 쿨다운 중이면 요청 차단
+    if (loading || cooldownSeconds !== null) {
+      return;
+    }
+    
     setError(null);
     setLoading(true);
 
@@ -39,7 +58,21 @@ export default function SignupPage() {
         },
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        // 429 에러 처리
+        if (authError.status === 429 || 
+            authError.message?.includes("Too Many Requests") ||
+            authError.message?.includes("after") && authError.message?.includes("seconds")) {
+          // 에러 메시지에서 대기 시간 추출 (다양한 형식 지원)
+          const waitTimeMatch = authError.message?.match(/(\d+)\s*seconds?/i) ||
+                               authError.message?.match(/after\s+(\d+)\s*seconds?/i);
+          const waitTime = waitTimeMatch ? parseInt(waitTimeMatch[1]) : 60;
+          setCooldownSeconds(waitTime);
+          setError(`보안을 위해 요청이 제한되었습니다. ${waitTime}초 후에 다시 시도해주세요.`);
+          return;
+        }
+        throw authError;
+      }
 
       if (authData.user) {
         // 세션을 명시적으로 확인
@@ -98,7 +131,18 @@ export default function SignupPage() {
         window.location.href = "/dashboard";
       }
     } catch (err: any) {
-      setError(err.message || "회원가입에 실패했습니다.");
+      // 429 에러 추가 처리
+      if (err.status === 429 || 
+          err.message?.includes("Too Many Requests") ||
+          (err.message?.includes("after") && err.message?.includes("seconds"))) {
+        const waitTimeMatch = err.message?.match(/(\d+)\s*seconds?/i) ||
+                             err.message?.match(/after\s+(\d+)\s*seconds?/i);
+        const waitTime = waitTimeMatch ? parseInt(waitTimeMatch[1]) : 60;
+        setCooldownSeconds(waitTime);
+        setError(`보안을 위해 요청이 제한되었습니다. ${waitTime}초 후에 다시 시도해주세요.`);
+      } else {
+        setError(err.message || "회원가입에 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
@@ -181,8 +225,16 @@ export default function SignupPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "가입 중..." : "회원가입"}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading || cooldownSeconds !== null}
+            >
+              {loading 
+                ? "가입 중..." 
+                : cooldownSeconds !== null 
+                ? `${cooldownSeconds}초 후 다시 시도` 
+                : "회원가입"}
             </Button>
             <div className="text-sm text-center text-muted-foreground">
               이미 계정이 있으신가요?{" "}
