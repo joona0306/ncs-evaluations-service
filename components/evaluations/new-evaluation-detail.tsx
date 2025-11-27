@@ -71,6 +71,7 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
       }
 
       // 과제물 데이터 로드
+      // evaluation.submission_id가 있으면 해당 과제물을, 없으면 학생의 최신 과제물을 조회
       if (evaluation.submission_id) {
         const submissionResponse = await fetch(
           `/api/submissions/${evaluation.submission_id}`
@@ -93,13 +94,53 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
             }
           }
         }
+      } else if (evaluation.student_id && evaluation.competency_unit_id) {
+        // submission_id가 없으면 해당 학생의 해당 능력단위 과제물 조회
+        try {
+          const submissionsResponse = await fetch(
+            `/api/submissions?student_id=${evaluation.student_id}&competency_unit_id=${evaluation.competency_unit_id}`
+          );
+          if (submissionsResponse.ok) {
+            const submissionsData = await submissionsResponse.json();
+            const submissionsArray = Array.isArray(submissionsData)
+              ? submissionsData
+              : submissionsData?.data || [];
+            
+            // 가장 최신 과제물 선택
+            if (submissionsArray.length > 0) {
+              const latestSubmission = submissionsArray.sort(
+                (a: any, b: any) =>
+                  new Date(b.submitted_at).getTime() -
+                  new Date(a.submitted_at).getTime()
+              )[0];
+              
+              setSubmission(latestSubmission);
+
+              // 이미지 타입인 경우 이미지 URL 로드
+              if (
+                latestSubmission.submission_type === "image" &&
+                latestSubmission.file_url
+              ) {
+                const imageResponse = await fetch(
+                  `/api/submissions/image?id=${latestSubmission.id}`
+                );
+                if (imageResponse.ok) {
+                  const imageData = await imageResponse.json();
+                  setSubmissionImageUrl(imageData.url);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error("과제물 조회 실패:", err);
+        }
       }
     } catch (error: any) {
       console.error("평가 데이터 로드 실패:", error);
     } finally {
       setLoading(false);
     }
-  }, [evaluation.id, evaluation.competency_unit_id, evaluation.submission_id]);
+  }, [evaluation.id, evaluation.competency_unit_id, evaluation.submission_id, evaluation.student_id]);
 
   useEffect(() => {
     loadData();

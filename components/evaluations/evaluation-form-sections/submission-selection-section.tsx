@@ -89,8 +89,16 @@ export function SubmissionSelectionSection({
   selectedSubmissionId,
   onSubmissionChange,
 }: SubmissionSelectionSectionProps) {
+  // 과제물이 없어도 섹션을 표시하여 사용자에게 알림
   if (submissions.length === 0) {
-    return null;
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="submission">과제물 (선택사항)</Label>
+        <div className="p-4 border rounded-lg bg-gray-50 text-sm text-muted-foreground">
+          이 학생이 제출한 과제물이 없습니다.
+        </div>
+      </div>
+    );
   }
 
   const selectedSubmission = submissions.find(

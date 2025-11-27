@@ -575,7 +575,7 @@ export function NewEvaluationForm({
             disabled={!!evaluation}
           />
 
-          {selectedUnit && selectedStudent && submissions.length > 0 && (
+          {selectedUnit && selectedStudent && (
             <SubmissionSelectionSection
               submissions={submissions}
               selectedSubmissionId={selectedSubmissionId}
