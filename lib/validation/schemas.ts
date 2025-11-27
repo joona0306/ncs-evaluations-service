@@ -49,7 +49,8 @@ const SubmissionSchemaBase = z.object({
   evaluation_schedule_id: z.string().uuid("유효하지 않은 평가일정 ID입니다."),
   competency_unit_id: z.string().uuid("유효하지 않은 능력단위 ID입니다."),
   submission_type: z.enum(["image", "url"]),
-  file_url: z.string().url().optional().nullable(),
+  // file_url은 Supabase Storage 경로이므로 URL 형식이 아닐 수 있음
+  file_url: z.string().min(1, "파일 경로가 필요합니다.").optional().nullable(),
   url: z.string().url("유효하지 않은 URL 형식입니다.").optional().nullable(),
   file_name: z.string().max(255).optional().nullable(),
   file_size: z.number().max(5 * 1024 * 1024, "파일 크기는 5MB 이하여야 합니다.").optional().nullable(),

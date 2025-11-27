@@ -5,10 +5,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
+
+export const dynamic = 'force-dynamic';
 
 // UsersList를 동적 임포트로 지연 로딩 (코드 스플리팅)
-const UsersList = dynamic(
+const UsersList = dynamicImport(
   () =>
     import("@/components/users/users-list").then((mod) => ({
       default: mod.UsersList,

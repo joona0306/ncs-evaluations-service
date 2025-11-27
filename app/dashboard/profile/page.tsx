@@ -3,6 +3,8 @@ import { getCurrentUserProfile } from "@/lib/auth";
 import { BackButton } from "@/components/ui/back-button";
 import { ProfileEditForm } from "@/components/profile/profile-edit-form";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProfilePage() {
   const profile = await getCurrentUserProfile();
 

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+export const dynamic = 'force-dynamic';
+
 export default async function MyEvaluationsPage() {
   const profile = await getCurrentUserProfile();
   
