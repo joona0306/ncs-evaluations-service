@@ -9,8 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { SignatureCanvasComponent } from "./signature-canvas";
+import dynamic from "next/dynamic";
 import { SignatureUpload } from "./signature-upload";
+
+// SignatureCanvasComponent를 동적 임포트로 지연 로딩 (react-signature-canvas 라이브러리 크기 감소)
+const SignatureCanvasComponent = dynamic(
+  () => import("./signature-canvas").then((mod) => ({ default: mod.SignatureCanvasComponent })),
+  {
+    loading: () => (
+      <div className="p-4 text-center text-muted-foreground">
+        서명 캔버스 로딩 중...
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 interface SignatureModalProps {
   evaluationId: string;

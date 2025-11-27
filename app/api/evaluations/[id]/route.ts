@@ -18,10 +18,39 @@ export async function GET(
     const { data, error } = await supabase
       .from("evaluations")
       .select(`
-        *,
-        competency_units(*),
-        student:profiles!evaluations_student_id_fkey(*),
-        teacher:profiles!evaluations_teacher_id_fkey(*)
+        id,
+        competency_unit_id,
+        student_id,
+        teacher_id,
+        status,
+        evaluated_at,
+        submission_id,
+        comments,
+        total_score,
+        raw_total_score,
+        created_at,
+        updated_at,
+        competency_units(
+          id,
+          name,
+          code,
+          description,
+          training_courses(
+            id,
+            name,
+            code
+          )
+        ),
+        student:profiles!evaluations_student_id_fkey(
+          id,
+          full_name,
+          email
+        ),
+        teacher:profiles!evaluations_teacher_id_fkey(
+          id,
+          full_name,
+          email
+        )
       `)
       .eq("id", params.id)
       .single();

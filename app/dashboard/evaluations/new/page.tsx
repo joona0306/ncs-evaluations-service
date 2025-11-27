@@ -5,9 +5,8 @@ import Link from "next/link";
 import { BackButton } from "@/components/ui/back-button";
 import { NewEvaluationForm } from "@/components/evaluations/new-evaluation-form";
 
-// 항상 동적으로 렌더링하여 최신 데이터 표시
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// 캐싱 전략: 30초마다 재검증
+export const revalidate = 30;
 
 export default async function NewEvaluationPage() {
   const profile = await getCurrentUserProfile();

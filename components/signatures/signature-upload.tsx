@@ -70,7 +70,6 @@ export function SignatureUpload({ onSave, onCancel }: SignatureUploadProps) {
             width={400}
             height={256}
             className="max-w-full h-auto max-h-64 mx-auto"
-            unoptimized
           />
         </div>
       )}

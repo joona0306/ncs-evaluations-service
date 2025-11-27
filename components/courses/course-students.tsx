@@ -52,13 +52,15 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
         return;
       }
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      if (data) {
-        setAllStudents(data);
-        if (data.length > 0 && !selectedStudent) {
-          setSelectedStudent(data[0].id);
-        }
+      // 페이징 응답 형식 처리
+      const studentsList = Array.isArray(responseData) 
+        ? responseData 
+        : (responseData?.data || []);
+
+      if (Array.isArray(studentsList)) {
+        setAllStudents(studentsList);
       } else {
         setAllStudents([]);
       }
@@ -66,7 +68,7 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
       console.error("모든 훈련생 로드 실패:", error);
       setAllStudents([]);
     }
-  }, [selectedStudent]);
+  }, []);
 
   useEffect(() => {
     loadStudents();
@@ -169,7 +171,7 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
                 className="w-[200px]"
               >
                 <option value="">학생 선택</option>
-                {allStudents
+                {Array.isArray(allStudents) && allStudents
                   .filter(
                     (student) =>
                       !students.some((s) => s.student_id === student.id)
@@ -215,6 +217,7 @@ export function CourseStudents({ courseId }: CourseStudentsProps) {
                     variant="destructive"
                     size="sm"
                     onClick={() => handleRemove(student.student_id)}
+                    aria-label={`${student.profiles?.full_name || student.profiles?.email} 훈련생 삭제`}
                   >
                     삭제
                   </Button>

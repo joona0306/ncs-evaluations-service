@@ -37,6 +37,28 @@ export default function LoginPage() {
         if (sessionError) throw sessionError;
         
         if (session) {
+          // 이메일 확인 상태 확인
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          
+          if (!authUser?.email_confirmed_at) {
+            // 이메일 확인이 안 된 경우
+            window.location.href = "/verify-email";
+            return;
+          }
+
+          // 프로필 확인 (관리자 승인 상태)
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("approved")
+            .eq("id", authUser.id)
+            .maybeSingle();
+
+          if (!profile?.approved) {
+            // 관리자 승인이 안 된 경우
+            window.location.href = "/waiting-approval";
+            return;
+          }
+
           // 로그인 성공 후 페이지를 완전히 새로고침하여 쿠키가 서버에 반영되도록 함
           // 미들웨어가 로그인 페이지에서 사용자를 감지하면 자동으로 대시보드로 리다이렉트
           window.location.reload();

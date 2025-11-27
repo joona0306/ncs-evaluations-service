@@ -23,7 +23,7 @@ export default function EvaluationDetailPageClient() {
     setError(null);
     try {
       const response = await fetch(`/api/evaluations/${params.id}`, {
-        cache: "no-store",
+        next: { revalidate: 30 }, // 30초 캐싱
       });
 
       if (!response.ok) {

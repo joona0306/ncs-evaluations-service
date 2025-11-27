@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
+import { getPaginationParams, createPaginatedResponse } from "@/lib/api/pagination";
 
 export async function GET(request: Request) {
   try {
@@ -16,8 +17,14 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const role = searchParams.get("role");
+    const { limit, offset } = getPaginationParams(searchParams);
 
     const supabase = await createClient();
+
+    // 전체 개수 조회
+    let countQuery = supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true });
 
     let query = supabase
       .from("profiles")
@@ -26,9 +33,14 @@ export async function GET(request: Request) {
 
     if (role) {
       query = query.eq("role", role);
+      countQuery = countQuery.eq("role", role);
     }
 
+    // 페이징 적용
+    query = query.range(offset, offset + limit - 1);
+
     const { data, error } = await query;
+    const { count } = await countQuery;
 
     if (error) {
       console.error("사용자 목록 조회 오류:", error);
@@ -38,7 +50,10 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json(data || []);
+    // 페이징 정보와 함께 응답
+    return NextResponse.json(
+      createPaginatedResponse(data || [], limit, offset, count || undefined)
+    );
   } catch (error: any) {
     console.error("사용자 목록 조회 실패:", error);
     return NextResponse.json(

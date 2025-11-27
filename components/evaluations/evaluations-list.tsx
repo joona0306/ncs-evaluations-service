@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,15 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
 import { EvaluationListSkeleton } from "@/components/ui/skeleton";
+import { EvaluationStudentItem } from "./evaluation-student-item";
 
 interface EvaluationsListProps {
   profile: {
     id: string;
     role: string;
   };
+  initialCourses?: any[];
+  initialCourseData?: Record<string, any>;
 }
 
 type CourseGroup = {
@@ -27,10 +28,14 @@ type CourseGroup = {
   competencyUnits: any[];
 };
 
-export function EvaluationsList({ profile }: EvaluationsListProps) {
-  const [courses, setCourses] = useState<any[]>([]);
-  const [courseData, setCourseData] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState(true);
+export function EvaluationsList({ 
+  profile,
+  initialCourses = [],
+  initialCourseData = {}
+}: EvaluationsListProps) {
+  const [courses, setCourses] = useState<any[]>(initialCourses);
+  const [courseData, setCourseData] = useState<Record<string, any>>(initialCourseData);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = async () => {
@@ -38,8 +43,10 @@ export function EvaluationsList({ profile }: EvaluationsListProps) {
     setError(null);
 
     try {
-      // 훈련과정 목록 가져오기
-      const coursesResponse = await fetch("/api/courses", { cache: "no-store" });
+      // 훈련과정 목록 가져오기 (적절한 캐싱 전략 적용)
+      const coursesResponse = await fetch("/api/courses", { 
+        next: { revalidate: 60 } // 60초마다 재검증
+      });
 
       if (!coursesResponse.ok) {
         const errorData = await coursesResponse.json();
@@ -49,25 +56,38 @@ export function EvaluationsList({ profile }: EvaluationsListProps) {
       const coursesData = await coursesResponse.json();
       setCourses(coursesData || []);
 
-      // 각 훈련과정별로 평가 상태 가져오기
+      // 각 훈련과정별로 평가 상태 가져오기 (병렬 처리로 성능 개선)
       const courseDataMap: Record<string, any> = {};
       
-      for (const course of coursesData || []) {
+      // 모든 API 호출을 병렬로 처리
+      const evaluationPromises = (coursesData || []).map(async (course: any) => {
         try {
           const response = await fetch(
             `/api/evaluations/by-course?course_id=${course.id}`,
-            { cache: "no-store" }
+            { 
+              // 평가 데이터는 자주 변경되므로 짧은 캐시 시간
+              next: { revalidate: 30 } // 30초마다 재검증
+            }
           );
           
           if (response.ok) {
             const data = await response.json();
-            courseDataMap[course.id] = data || [];
+            return { courseId: course.id, data: data || [] };
           }
+          return { courseId: course.id, data: [] };
         } catch (err) {
           console.error(`훈련과정 ${course.id} 데이터 로드 실패:`, err);
-          courseDataMap[course.id] = [];
+          return { courseId: course.id, data: [] };
         }
-      }
+      });
+
+      // 모든 요청을 병렬로 실행
+      const results = await Promise.all(evaluationPromises);
+      
+      // 결과를 맵으로 변환
+      results.forEach(({ courseId, data }) => {
+        courseDataMap[courseId] = data;
+      });
 
       setCourseData(courseDataMap);
     } catch (err: any) {
@@ -78,16 +98,20 @@ export function EvaluationsList({ profile }: EvaluationsListProps) {
     }
   };
 
+  // 초기 데이터가 없을 때만 로드
   useEffect(() => {
-    loadData();
+    if (initialCourses.length === 0 && Object.keys(initialCourseData).length === 0) {
+      loadData();
+    }
   }, [profile.id, profile.role]);
 
-  const handleEvaluate = async (
-    competencyUnitId: string,
-    studentId: string,
-    submissionId?: string,
-    evaluationId?: string
-  ) => {
+  const handleEvaluate = useCallback(
+    async (
+      competencyUnitId: string,
+      studentId: string,
+      submissionId?: string,
+      evaluationId?: string
+    ) => {
     try {
       if (evaluationId) {
         // 기존 평가가 있으면 수정 페이지로 이동
@@ -105,7 +129,9 @@ export function EvaluationsList({ profile }: EvaluationsListProps) {
     } catch (err) {
       console.error("평가 페이지 이동 실패:", err);
     }
-  };
+    },
+    []
+  );
 
   if (loading) {
     return <EvaluationListSkeleton />;
@@ -133,14 +159,14 @@ export function EvaluationsList({ profile }: EvaluationsListProps) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 px-4 sm:px-0">
       {courses.map((course) => {
         const units = courseData[course.id] || [];
         
         return (
           <div key={course.id} className="space-y-6">
             <div className="border-b pb-3">
-              <h3 className="text-2xl font-bold">{course.name}</h3>
+              <h3 className="text-xl sm:text-2xl font-bold">{course.name}</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 {course.code} - 능력단위 {units.length}개
               </p>
@@ -196,141 +222,27 @@ export function EvaluationsList({ profile }: EvaluationsListProps) {
                       <CardContent>
                         <div className="space-y-3">
                           {students.map((studentData: any) => {
-                            const { student_id, student_name, student_email, evaluation, submissions, evaluation_status } = studentData;
-                            const latestSubmission = submissions && submissions.length > 0 ? submissions[0] : null;
+                            const {
+                              student_id,
+                              student_name,
+                              student_email,
+                              evaluation,
+                              submissions,
+                              evaluation_status,
+                            } = studentData;
 
                             return (
-                              <div
+                              <EvaluationStudentItem
                                 key={student_id}
-                                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                              >
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <h4 className="font-semibold">
-                                        {student_name || student_email}
-                                      </h4>
-                                      <span
-                                        className={`px-2 py-1 text-xs rounded ${
-                                          evaluation_status === "confirmed"
-                                            ? "bg-green-100 text-green-800"
-                                            : evaluation_status === "submitted"
-                                            ? "bg-blue-100 text-blue-800"
-                                            : evaluation_status === "pending"
-                                            ? "bg-yellow-100 text-yellow-800"
-                                            : "bg-gray-100 text-gray-800"
-                                        }`}
-                                      >
-                                        {evaluation_status === "confirmed"
-                                          ? "확정"
-                                          : evaluation_status === "submitted"
-                                          ? "제출"
-                                          : evaluation_status === "pending"
-                                          ? "대기중"
-                                          : "임시저장"}
-                                      </span>
-                                      {latestSubmission && (
-                                        <span className="px-2 py-1 text-xs rounded bg-blue-50 text-blue-700">
-                                          과제물 제출됨
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {evaluation && evaluation.evaluated_at && (
-                                      <p className="text-xs text-muted-foreground mb-2">
-                                        평가일:{" "}
-                                        {format(
-                                          new Date(evaluation.evaluated_at),
-                                          "yyyy년 MM월 dd일",
-                                          { locale: ko }
-                                        )}
-                                      </p>
-                                    )}
-
-                                    {latestSubmission && (
-                                      <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
-                                        <p className="text-blue-700 font-medium">
-                                          최근 제출:{" "}
-                                          {format(
-                                            new Date(latestSubmission.submitted_at),
-                                            "yyyy-MM-dd HH:mm",
-                                            { locale: ko }
-                                          )}
-                                        </p>
-                                        {latestSubmission.evaluation_schedules && (
-                                          <p className="text-blue-600 mt-1">
-                                            평가일정: {latestSubmission.evaluation_schedules.title}
-                                          </p>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="flex gap-2 ml-4">
-                                    {evaluation ? (
-                                      <>
-                                        <Link
-                                          href={`/dashboard/evaluations/${evaluation.id}`}
-                                        >
-                                          <Button variant="outline" size="sm">
-                                            상세보기
-                                          </Button>
-                                        </Link>
-                                        {/* 과제물이 제출된 평가는 수정하기 버튼 숨김 */}
-                                        {!latestSubmission && (
-                                          <Button
-                                            size="sm"
-                                            onClick={() =>
-                                              handleEvaluate(
-                                                competency_unit.id,
-                                                student_id,
-                                                latestSubmission?.id,
-                                                evaluation.id
-                                              )
-                                            }
-                                          >
-                                            수정하기
-                                          </Button>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <Button
-                                        size="sm"
-                                        onClick={() =>
-                                          handleEvaluate(
-                                            competency_unit.id,
-                                            student_id,
-                                            latestSubmission?.id
-                                          )
-                                        }
-                                      >
-                                        {latestSubmission ? "평가하기" : "평가 시작"}
-                                      </Button>
-                                    )}
-                                    {/* 과제물이 제출된 평가는 다운로드/URL 열기 버튼 숨김 */}
-                                    {latestSubmission && !evaluation && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          if (latestSubmission.submission_type === "image") {
-                                            window.open(
-                                              `/api/submissions/download?id=${latestSubmission.id}`,
-                                              "_blank"
-                                            );
-                                          } else if (latestSubmission.url) {
-                                            window.open(latestSubmission.url, "_blank");
-                                          }
-                                        }}
-                                      >
-                                        {latestSubmission.submission_type === "image"
-                                          ? "다운로드"
-                                          : "URL 열기"}
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
+                                studentId={student_id}
+                                studentName={student_name || student_email}
+                                studentEmail={student_email}
+                                evaluation={evaluation}
+                                submissions={submissions || []}
+                                evaluationStatus={evaluation_status}
+                                competencyUnitId={competency_unit.id}
+                                onEvaluate={handleEvaluate}
+                              />
                             );
                           })}
                         </div>

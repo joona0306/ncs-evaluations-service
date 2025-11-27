@@ -8,15 +8,9 @@ import { UserCourseAssignment } from "@/components/users/user-course-assignment"
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-interface User {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: string;
-  phone: string | null;
-  approved: boolean;
-  created_at: string;
-}
+import { User } from "@/types/common";
+
+// User 타입은 types/common.ts에서 가져옴
 
 interface UsersListProps {
   initialUsers: User[];
@@ -24,7 +18,9 @@ interface UsersListProps {
 
 export function UsersList({ initialUsers }: UsersListProps) {
   const [users, setUsers] = useState<User[]>(initialUsers);
-  const [activeTab, setActiveTab] = useState<"pending" | "teachers" | "students">("pending");
+  const [activeTab, setActiveTab] = useState<
+    "pending" | "teachers" | "students"
+  >("pending");
 
   const handleUpdate = async () => {
     try {
@@ -35,16 +31,29 @@ export function UsersList({ initialUsers }: UsersListProps) {
         return;
       }
 
-      const data = await response.json();
-      setUsers(data || []);
+      const responseData = await response.json();
+      // 페이징된 응답에서 data 필드 추출
+      const usersData = Array.isArray(responseData)
+        ? responseData
+        : responseData.data || [];
+      setUsers(usersData);
     } catch (error: any) {
       console.error("사용자 목록 새로고침 실패:", error);
     }
   };
 
-  const pendingUsers = users.filter((u) => !u.approved && u.role !== "admin");
-  const approvedTeachers = users.filter((u) => (u.approved || u.role === "admin") && u.role === "teacher");
-  const approvedStudents = users.filter((u) => (u.approved || u.role === "admin") && u.role === "student");
+  // users가 배열인지 확인
+  const usersArray = Array.isArray(users) ? users : [];
+
+  const pendingUsers = usersArray.filter(
+    (u) => !u.approved && u.role !== "admin"
+  );
+  const approvedTeachers = usersArray.filter(
+    (u) => (u.approved || u.role === "admin") && u.role === "teacher"
+  );
+  const approvedStudents = usersArray.filter(
+    (u) => (u.approved || u.role === "admin") && u.role === "student"
+  );
 
   return (
     <div className="space-y-6">
@@ -98,12 +107,17 @@ export function UsersList({ initialUsers }: UsersListProps) {
                         <p className="font-medium text-lg">
                           {user.full_name || "이름 없음"}
                         </p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
                         <div className="flex gap-2 mt-2">
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            user.role === "teacher" ? "bg-blue-100 text-blue-800" :
-                            "bg-green-100 text-green-800"
-                          }`}>
+                          <span
+                            className={`px-2 py-1 text-xs rounded ${
+                              user.role === "teacher"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-green-100 text-green-800"
+                            }`}
+                          >
                             {user.role === "teacher" ? "훈련교사" : "훈련생"}
                           </span>
                           {user.phone && (
@@ -119,12 +133,15 @@ export function UsersList({ initialUsers }: UsersListProps) {
                       <div className="flex items-center gap-4">
                         <div className="text-right">
                           <p className="text-sm text-muted-foreground">
-                            가입일: {new Date(user.created_at).toLocaleDateString("ko-KR")}
+                            가입일:{" "}
+                            {new Date(user.created_at).toLocaleDateString(
+                              "ko-KR"
+                            )}
                           </p>
                         </div>
                         <UserApprovalButton
                           userId={user.id}
-                          approved={user.approved}
+                          approved={user.approved ?? false}
                           onUpdate={handleUpdate}
                         />
                       </div>
@@ -136,7 +153,9 @@ export function UsersList({ initialUsers }: UsersListProps) {
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">승인 대기 중인 사용자가 없습니다.</p>
+                <p className="text-muted-foreground">
+                  승인 대기 중인 사용자가 없습니다.
+                </p>
               </CardContent>
             </Card>
           )}
@@ -146,9 +165,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
       {/* 훈련교사 탭 */}
       {activeTab === "teachers" && (
         <div>
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">
-            훈련교사
-          </h3>
+          <h3 className="text-xl font-semibold mb-4 text-blue-600">훈련교사</h3>
           {approvedTeachers.length > 0 ? (
             <div className="space-y-4">
               {approvedTeachers.map((user) => (
@@ -160,7 +177,9 @@ export function UsersList({ initialUsers }: UsersListProps) {
                           <p className="font-medium text-lg">
                             {user.full_name || "이름 없음"}
                           </p>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {user.email}
+                          </p>
                           <div className="flex gap-2 mt-2">
                             <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
                               훈련교사
@@ -175,18 +194,23 @@ export function UsersList({ initialUsers }: UsersListProps) {
                         <div className="flex items-center gap-4">
                           <div className="text-right">
                             <p className="text-sm text-muted-foreground">
-                              가입일: {new Date(user.created_at).toLocaleDateString("ko-KR")}
+                              가입일:{" "}
+                              {new Date(user.created_at).toLocaleDateString(
+                                "ko-KR"
+                              )}
                             </p>
                           </div>
                           <UserApprovalButton
                             userId={user.id}
-                            approved={user.approved}
+                            approved={user.approved ?? false}
                             onUpdate={handleUpdate}
                           />
                         </div>
                       </div>
                       <div className="pt-3 border-t">
-                        <p className="text-sm font-medium mb-2">배정된 훈련과정</p>
+                        <p className="text-sm font-medium mb-2">
+                          배정된 훈련과정
+                        </p>
                         <UserCourseAssignment
                           userId={user.id}
                           userRole="teacher"
@@ -201,7 +225,9 @@ export function UsersList({ initialUsers }: UsersListProps) {
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">승인된 훈련교사가 없습니다.</p>
+                <p className="text-muted-foreground">
+                  승인된 훈련교사가 없습니다.
+                </p>
               </CardContent>
             </Card>
           )}
@@ -211,9 +237,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
       {/* 훈련생 탭 */}
       {activeTab === "students" && (
         <div>
-          <h3 className="text-xl font-semibold mb-4 text-green-600">
-            훈련생
-          </h3>
+          <h3 className="text-xl font-semibold mb-4 text-green-600">훈련생</h3>
           {approvedStudents.length > 0 ? (
             <div className="space-y-4">
               {approvedStudents.map((user) => (
@@ -225,7 +249,9 @@ export function UsersList({ initialUsers }: UsersListProps) {
                           <p className="font-medium text-lg">
                             {user.full_name || "이름 없음"}
                           </p>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {user.email}
+                          </p>
                           <div className="flex gap-2 mt-2">
                             <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">
                               훈련생
@@ -240,18 +266,23 @@ export function UsersList({ initialUsers }: UsersListProps) {
                         <div className="flex items-center gap-4">
                           <div className="text-right">
                             <p className="text-sm text-muted-foreground">
-                              가입일: {new Date(user.created_at).toLocaleDateString("ko-KR")}
+                              가입일:{" "}
+                              {new Date(user.created_at).toLocaleDateString(
+                                "ko-KR"
+                              )}
                             </p>
                           </div>
                           <UserApprovalButton
                             userId={user.id}
-                            approved={user.approved}
+                            approved={user.approved ?? false}
                             onUpdate={handleUpdate}
                           />
                         </div>
                       </div>
                       <div className="pt-3 border-t">
-                        <p className="text-sm font-medium mb-2">배정된 훈련과정</p>
+                        <p className="text-sm font-medium mb-2">
+                          배정된 훈련과정
+                        </p>
                         <UserCourseAssignment
                           userId={user.id}
                           userRole="student"
@@ -266,7 +297,9 @@ export function UsersList({ initialUsers }: UsersListProps) {
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">승인된 훈련생이 없습니다.</p>
+                <p className="text-muted-foreground">
+                  승인된 훈련생이 없습니다.
+                </p>
               </CardContent>
             </Card>
           )}
@@ -275,4 +308,3 @@ export function UsersList({ initialUsers }: UsersListProps) {
     </div>
   );
 }
-

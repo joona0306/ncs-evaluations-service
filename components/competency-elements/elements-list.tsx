@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ElementForm } from "./element-form";
@@ -9,6 +8,9 @@ import {
   CompetencyElement,
 } from "@/types/evaluation";
 import { useCanManage } from "@/stores/auth-store";
+import { useListData } from "@/lib/hooks/use-list-data";
+import { useDeleteItem } from "@/lib/hooks/use-delete-item";
+import { useDialogForm } from "@/lib/hooks/use-dialog-form";
 
 interface CompetencyElementsListProps {
   competencyUnitId: string;
@@ -17,68 +19,43 @@ interface CompetencyElementsListProps {
 export function CompetencyElementsList({
   competencyUnitId,
 }: CompetencyElementsListProps) {
-  const [elements, setElements] = useState<CompetencyElement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showDialog, setShowDialog] = useState(false);
-  const [editingElement, setEditingElement] = useState<
-    CompetencyElement | undefined
-  >();
   const canManage = useCanManage(); // ✨ Zustand hook
 
-  const loadElements = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `/api/competency-elements?competency_unit_id=${competencyUnitId}`
-      );
+  // 공통 훅 사용
+  const {
+    data: elements,
+    loading,
+    refetch: loadElements,
+  } = useListData<CompetencyElement>({
+    apiUrl: `/api/competency-elements?competency_unit_id=${competencyUnitId}`,
+    enabled: !!competencyUnitId,
+  });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "능력단위요소를 불러올 수 없습니다.");
-      }
+  const { deleteItem } = useDeleteItem({
+    onSuccess: loadElements,
+    confirmMessage: "이 능력단위요소를 삭제하시겠습니까?",
+  });
 
-      const data = await response.json();
-      setElements(data || []);
-    } catch (error: any) {
-      console.error("능력단위요소 로드 실패:", error);
-      alert(`능력단위요소를 불러오는 중 오류가 발생했습니다: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [competencyUnitId]);
+  const {
+    showDialog,
+    editingItem: editingElement,
+    openDialog,
+    closeDialog,
+    handleSuccess,
+  } = useDialogForm<CompetencyElement>({
+    onSuccess: loadElements,
+  });
 
-  useEffect(() => {
-    loadElements();
-  }, [loadElements]);
-
-  const handleDelete = async (elementId: string) => {
-    if (!confirm("이 능력단위요소를 삭제하시겠습니까?")) return;
-
-    const response = await fetch(`/api/competency-elements/${elementId}`, {
-      method: "DELETE",
-    });
-
-    if (response.ok) {
-      loadElements();
-    } else {
-      alert("삭제에 실패했습니다.");
-    }
+  const handleDelete = (elementId: string) => {
+    deleteItem(`/api/competency-elements/${elementId}`, "능력단위요소");
   };
 
   const handleAdd = () => {
-    setEditingElement(undefined);
-    setShowDialog(true);
+    openDialog();
   };
 
   const handleEdit = (element: CompetencyElement) => {
-    setEditingElement(element);
-    setShowDialog(true);
-  };
-
-  const handleSuccess = () => {
-    setShowDialog(false);
-    setEditingElement(undefined);
-    loadElements();
+    openDialog(element);
   };
 
   if (loading) {
@@ -121,6 +98,7 @@ export function CompetencyElementsList({
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEdit(element)}
+                      aria-label={`${element.name} 능력단위요소 수정`}
                     >
                       수정
                     </Button>
@@ -128,6 +106,7 @@ export function CompetencyElementsList({
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(element.id)}
+                      aria-label={`${element.name} 능력단위요소 삭제`}
                     >
                       삭제
                     </Button>
@@ -158,7 +137,7 @@ export function CompetencyElementsList({
               competencyUnitId={competencyUnitId}
               element={editingElement}
               onSuccess={handleSuccess}
-              onCancel={() => setShowDialog(false)}
+              onCancel={closeDialog}
             />
           </CardContent>
         </Card>

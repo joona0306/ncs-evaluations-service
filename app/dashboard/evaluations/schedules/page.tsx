@@ -19,7 +19,9 @@ export default function EvaluationSchedulesPage() {
 
   const loadCourses = useCallback(async () => {
     try {
-      const response = await fetch("/api/courses", { cache: "no-store" });
+      const response = await fetch("/api/courses", {
+        next: { revalidate: 60 }, // 일정 데이터는 자주 변경되지 않음
+      });
       if (!response.ok) {
         throw new Error("훈련과정을 불러올 수 없습니다.");
       }

@@ -257,7 +257,6 @@ export function SubmissionForm({
                     width={600}
                     height={400}
                     className="max-w-full h-auto max-h-64 border rounded"
-                    unoptimized
                   />
                 </div>
               )}

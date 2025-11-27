@@ -51,7 +51,9 @@ export function SubmissionsList({
         scheduleUrl += `competency_unit_id=${competencyUnitId}`;
       }
 
-      const scheduleResponse = await fetch(scheduleUrl, { cache: "no-store" });
+      const scheduleResponse = await fetch(scheduleUrl, { 
+        next: { revalidate: 60 } // 60초마다 재검증
+      });
       if (!scheduleResponse.ok) {
         throw new Error("평가일정을 불러올 수 없습니다.");
       }
@@ -64,7 +66,7 @@ export function SubmissionsList({
       if (profile?.id) {
         const submissionResponse = await fetch(
           `/api/submissions?student_id=${profile.id}`,
-          { cache: "no-store" }
+          { next: { revalidate: 30 } } // 30초마다 재검증
         );
         if (submissionResponse.ok) {
           const submissionData = await submissionResponse.json();

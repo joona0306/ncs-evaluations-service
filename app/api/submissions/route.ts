@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
+import { getPaginationParams, createPaginatedResponse } from "@/lib/api/pagination";
 
 export async function GET(request: Request) {
   try {
@@ -14,8 +15,14 @@ export async function GET(request: Request) {
     const evaluationScheduleId = searchParams.get("evaluation_schedule_id");
     const studentId = searchParams.get("student_id");
     const competencyUnitId = searchParams.get("competency_unit_id");
+    const { limit, offset } = getPaginationParams(searchParams);
 
     const supabase = await createClient();
+
+    // 전체 개수 조회용 쿼리
+    let countQuery = supabase
+      .from("submissions")
+      .select("*", { count: "exact", head: true });
 
     let query = supabase
       .from("submissions")
@@ -51,6 +58,7 @@ export async function GET(request: Request) {
     // 평가일정별 조회
     if (evaluationScheduleId) {
       query = query.eq("evaluation_schedule_id", evaluationScheduleId);
+      countQuery = countQuery.eq("evaluation_schedule_id", evaluationScheduleId);
     }
 
     // 학생별 조회
@@ -60,19 +68,26 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       query = query.eq("student_id", studentId);
+      countQuery = countQuery.eq("student_id", studentId);
     }
 
     // 능력단위별 조회
     if (competencyUnitId) {
       query = query.eq("competency_unit_id", competencyUnitId);
+      countQuery = countQuery.eq("competency_unit_id", competencyUnitId);
     }
 
     // 학생은 자신의 과제물만 조회
     if (profile.role === "student" && !studentId) {
       query = query.eq("student_id", profile.id);
+      countQuery = countQuery.eq("student_id", profile.id);
     }
 
+    // 페이징 적용
+    query = query.range(offset, offset + limit - 1);
+
     const { data, error } = await query;
+    const { count } = await countQuery;
 
     if (error) {
       console.error("과제물 조회 오류:", error);
@@ -82,7 +97,10 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json(data || []);
+    // 페이징 정보와 함께 응답
+    return NextResponse.json(
+      createPaginatedResponse(data || [], limit, offset, count || undefined)
+    );
   } catch (error: any) {
     console.error("과제물 조회 실패:", error);
     return NextResponse.json(
@@ -101,6 +119,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const validation = validateRequest(CreateSubmissionSchema, body);
+    
+    if (!validation.success) {
+      return validation.response;
+    }
+
     const {
       evaluation_schedule_id,
       competency_unit_id,
@@ -110,37 +134,7 @@ export async function POST(request: Request) {
       file_name,
       file_size,
       comments,
-    } = body;
-
-    if (!evaluation_schedule_id || !competency_unit_id || !submission_type) {
-      return NextResponse.json(
-        { error: "evaluation_schedule_id, competency_unit_id, and submission_type are required" },
-        { status: 400 }
-      );
-    }
-
-    // submission_type에 따른 검증
-    if (submission_type === "image" && !file_url) {
-      return NextResponse.json(
-        { error: "file_url is required for image submission" },
-        { status: 400 }
-      );
-    }
-
-    if (submission_type === "url" && !url) {
-      return NextResponse.json(
-        { error: "url is required for url submission" },
-        { status: 400 }
-      );
-    }
-
-    // 파일 크기 검증 (5MB = 5 * 1024 * 1024 bytes)
-    if (file_size && file_size > 5 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "File size must be 5MB or less" },
-        { status: 400 }
-      );
-    }
+    } = validation.data;
 
     const supabase = await createClient();
 

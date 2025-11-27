@@ -47,7 +47,7 @@ export function AchievementOverview() {
     setLoadingCourses(true);
     try {
       const response = await fetch("/api/courses", {
-        cache: "no-store",
+        next: { revalidate: 60 }, // 60초마다 재검증
       });
 
       if (!response.ok) {

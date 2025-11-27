@@ -73,7 +73,90 @@ export async function GET(request: Request) {
       );
     }
 
-    // 각 능력단위별로 훈련생별 평가 상태 조회
+    // N+1 쿼리 문제 해결: 배치 쿼리로 변경
+    const unitIds = (competencyUnits || []).map((u) => u.id);
+    const studentIds = (courseStudents || [])
+      .map((cs) => {
+        const student = Array.isArray(cs.profiles) ? cs.profiles[0] : cs.profiles;
+        return student?.id;
+      })
+      .filter(Boolean) as string[];
+
+    if (unitIds.length === 0 || studentIds.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // 모든 평가를 한 번에 조회
+    const { data: allEvaluations, error: evaluationError } = await supabase
+      .from("evaluations")
+      .select(
+        `
+        id,
+        competency_unit_id,
+        student_id,
+        status,
+        evaluated_at,
+        submission_id,
+        student:profiles!evaluations_student_id_fkey(
+          id,
+          full_name,
+          email
+        )
+      `
+      )
+      .in("competency_unit_id", unitIds)
+      .in("student_id", studentIds);
+
+    if (evaluationError) {
+      console.error("평가 조회 오류:", evaluationError);
+      return NextResponse.json({ error: evaluationError.message }, { status: 500 });
+    }
+
+    // 모든 과제물을 한 번에 조회
+    const { data: allSubmissions, error: subError } = await supabase
+      .from("submissions")
+      .select(
+        `
+        id,
+        competency_unit_id,
+        student_id,
+        submission_type,
+        file_url,
+        url,
+        file_name,
+        submitted_at,
+        evaluation_schedules(
+          id,
+          title
+        )
+      `
+      )
+      .in("competency_unit_id", unitIds)
+      .in("student_id", studentIds)
+      .order("submitted_at", { ascending: false });
+
+    if (subError) {
+      console.error("과제물 조회 오류:", subError);
+      return NextResponse.json({ error: subError.message }, { status: 500 });
+    }
+
+    // 메모리에서 데이터 그룹화
+    const evaluationsMap = new Map<string, any>();
+    (allEvaluations || []).forEach((evaluation) => {
+      const key = `${evaluation.competency_unit_id}-${evaluation.student_id}`;
+      evaluationsMap.set(key, evaluation);
+    });
+
+    const submissionsMap = new Map<string, any[]>();
+    (allSubmissions || []).forEach((sub) => {
+      const key = `${sub.competency_unit_id}-${sub.student_id}`;
+      if (!submissionsMap.has(key)) {
+        submissionsMap.set(key, []);
+      }
+      submissionsMap.get(key)!.push(sub);
+    });
+
+    // 결과 구성
     const result: any[] = [];
 
     for (const unit of competencyUnits || []) {
@@ -85,54 +168,17 @@ export async function GET(request: Request) {
           : cs.profiles;
         if (!student) continue;
 
-        // 해당 능력단위와 훈련생의 평가 조회
-        const { data: evaluation } = await supabase
-          .from("evaluations")
-          .select(
-            `
-            id,
-            status,
-            evaluated_at,
-            submission_id,
-            student:profiles!evaluations_student_id_fkey(
-              id,
-              full_name,
-              email
-            )
-          `
-          )
-          .eq("competency_unit_id", unit.id)
-          .eq("student_id", student.id)
-          .maybeSingle();
-
-        // 제출된 과제물 조회
-        const { data: submissions } = await supabase
-          .from("submissions")
-          .select(
-            `
-            id,
-            submission_type,
-            file_url,
-            url,
-            file_name,
-            submitted_at,
-            evaluation_schedules(
-              id,
-              title
-            )
-          `
-          )
-          .eq("competency_unit_id", unit.id)
-          .eq("student_id", student.id)
-          .order("submitted_at", { ascending: false });
+        const key = `${unit.id}-${student.id}`;
+        const evaluation = evaluationsMap.get(key) || null;
+        const submissions = submissionsMap.get(key) || [];
 
         unitEvaluations.push({
           student_id: student.id,
           student_name: student.full_name || student.email,
           student_email: student.email,
           evaluation: evaluation || null,
-          submissions: submissions || [],
-          has_submission: (submissions || []).length > 0,
+          submissions: submissions,
+          has_submission: submissions.length > 0,
           evaluation_status: evaluation ? evaluation.status : "pending",
         });
       }

@@ -9,18 +9,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  phone: string | null;
-  birth_date: string | null;
-  gender: string | null;
-  role: string;
+import { Profile } from "@/types/common";
+
+// Profile 타입은 types/common.ts에서 가져옴
+// birth_date, gender는 Profile에 없으므로 확장
+interface ExtendedProfile extends Profile {
+  birth_date?: string | null;
+  gender?: string | null;
 }
 
 interface ProfileEditFormProps {
-  profile: Profile;
+  profile: ExtendedProfile;
 }
 
 export function ProfileEditForm({ profile }: ProfileEditFormProps) {

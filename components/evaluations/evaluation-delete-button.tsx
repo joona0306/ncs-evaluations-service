@@ -51,8 +51,13 @@ export function EvaluationDeleteButton({
       variant="destructive"
       onClick={handleDelete}
       disabled={loading}
+      aria-label="평가 삭제"
+      aria-describedby="delete-evaluation-description"
     >
       {loading ? "삭제 중..." : "삭제"}
+      <span id="delete-evaluation-description" className="sr-only">
+        이 평가를 영구적으로 삭제합니다. 이 작업은 되돌릴 수 없습니다.
+      </span>
     </Button>
   );
 }
