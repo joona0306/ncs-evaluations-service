@@ -12,6 +12,7 @@ interface Submission {
   submission_type: "image" | "url";
   file_name?: string;
   file_url?: string;
+  file_size?: number;
   url?: string;
   comments?: string;
   submitted_at: string;
@@ -31,7 +32,9 @@ function SubmissionImagePreview({ submissionId }: { submissionId: string }) {
   useEffect(() => {
     const loadImage = async () => {
       try {
-        const response = await fetch(`/api/submissions/image?id=${submissionId}`);
+        const response = await fetch(
+          `/api/submissions/image?id=${submissionId}`
+        );
         if (response.ok) {
           const data = await response.json();
           setImageUrl(data.url);
@@ -124,7 +127,9 @@ export function SubmissionSelectionSection({
             <div>
               <h4 className="font-semibold text-lg">과제물 상세</h4>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-muted-foreground">제출 유형:</span>
+                <span className="text-sm text-muted-foreground">
+                  제출 유형:
+                </span>
                 <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
                   {selectedSubmission.submission_type === "image"
                     ? "이미지 파일"
@@ -168,7 +173,9 @@ export function SubmissionSelectionSection({
                       size="sm"
                       onClick={() => {
                         // 이미지 URL을 가져와서 새 탭에서 열기
-                        fetch(`/api/submissions/image?id=${selectedSubmission.id}`)
+                        fetch(
+                          `/api/submissions/image?id=${selectedSubmission.id}`
+                        )
                           .then((res) => res.json())
                           .then((data) => {
                             if (data.url) {
@@ -236,13 +243,18 @@ export function SubmissionSelectionSection({
                   <p className="text-sm text-muted-foreground mb-2">
                     이미지 미리보기
                   </p>
-                  <SubmissionImagePreview submissionId={selectedSubmission.id} />
+                  <SubmissionImagePreview
+                    submissionId={selectedSubmission.id}
+                  />
                 </div>
                 {selectedSubmission.file_name && (
                   <p className="text-xs text-muted-foreground">
                     파일명: {selectedSubmission.file_name}
                     {selectedSubmission.file_size && (
-                      <> ({(selectedSubmission.file_size / 1024).toFixed(2)} KB)</>
+                      <>
+                        {" "}
+                        ({(selectedSubmission.file_size / 1024).toFixed(2)} KB)
+                      </>
                     )}
                   </p>
                 )}
@@ -296,4 +308,3 @@ export function SubmissionSelectionSection({
     </div>
   );
 }
-
