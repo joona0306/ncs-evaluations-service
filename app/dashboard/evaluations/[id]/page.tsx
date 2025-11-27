@@ -91,8 +91,12 @@ export default async function EvaluationDetailPage({
         <div>
           <h2 className="text-3xl font-bold mb-2">평가 상세</h2>
           <p className="text-muted-foreground">
-            {evaluation.competency_units?.name} -{" "}
-            {evaluation.student?.full_name || evaluation.student?.email}
+            {Array.isArray(evaluation.competency_units) 
+              ? (evaluation.competency_units as any[])[0]?.name 
+              : (evaluation.competency_units as any)?.name} -{" "}
+            {Array.isArray(evaluation.student)
+              ? (evaluation.student as any[])[0]?.full_name || (evaluation.student as any[])[0]?.email
+              : (evaluation.student as any)?.full_name || (evaluation.student as any)?.email}
           </p>
         </div>
         {canEdit && (

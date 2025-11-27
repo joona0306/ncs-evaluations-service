@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AuthProvider } from "@/components/providers/auth-provider";
-import { useAuthStore, Profile } from "@/stores/auth-store";
+import { useAuthStore } from "@/stores/auth-store";
+import { Profile } from "@/types/common";
 import { createClient } from "@/lib/supabase/client";
 
 interface DashboardLayoutClientProps {

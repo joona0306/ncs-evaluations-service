@@ -16,7 +16,10 @@ import dynamic from "next/dynamic";
 
 // SignatureModal을 동적 임포트로 지연 로딩
 const SignatureModal = dynamic(
-  () => import("@/components/signatures/signature-modal").then((mod) => ({ default: mod.SignatureModal })),
+  () =>
+    import("@/components/signatures/signature-modal").then((mod) => ({
+      default: mod.SignatureModal,
+    })),
   {
     loading: () => (
       <div className="p-4 text-center text-muted-foreground">
@@ -64,7 +67,9 @@ export function NewEvaluationForm({
   const [comments, setComments] = useState(evaluation?.comments || "");
   const [status, setStatus] = useState(evaluation?.status || "draft");
   const [showSignatureModal, setShowSignatureModal] = useState(false);
-  const [savedEvaluationId, setSavedEvaluationId] = useState<string | null>(null);
+  const [savedEvaluationId, setSavedEvaluationId] = useState<string | null>(
+    null
+  );
   const [hasTeacherSignature, setHasTeacherSignature] = useState(false);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string>(
@@ -77,7 +82,7 @@ export function NewEvaluationForm({
       const unitId = searchParams.get("competency_unit_id");
       const studentId = searchParams.get("student_id");
       const submissionId = searchParams.get("submission_id");
-      
+
       if (unitId) {
         setSelectedUnit(unitId);
       }
@@ -488,17 +493,23 @@ export function NewEvaluationForm({
 
         if (!response.ok) {
           const errorData = await response.json();
-          
+
           // 기존 평가가 있는 경우 수정 페이지로 리다이렉트
           if (response.status === 409 && errorData.existing_evaluation_id) {
-            if (confirm("이 학생에 대한 평가가 이미 존재합니다. 기존 평가를 수정하시겠습니까?")) {
-              router.push(`/dashboard/evaluations/${errorData.existing_evaluation_id}/edit`);
+            if (
+              confirm(
+                "이 학생에 대한 평가가 이미 존재합니다. 기존 평가를 수정하시겠습니까?"
+              )
+            ) {
+              router.push(
+                `/dashboard/evaluations/${errorData.existing_evaluation_id}/edit`
+              );
               return;
             } else {
               throw new Error("이미 평가가 존재합니다.");
             }
           }
-          
+
           throw new Error(errorData.error || "평가 생성에 실패했습니다.");
         }
 
@@ -591,33 +602,34 @@ export function NewEvaluationForm({
                     convertedScore={convertedScore}
                   />
 
-                <div className="space-y-2">
-                  <Label htmlFor="comments">종합 평가 의견</Label>
-                  <Textarea
-                    id="comments"
-                    value={comments}
-                    onChange={(e) => setComments(e.target.value)}
-                    rows={4}
-                    placeholder="전체적인 평가 의견을 입력하세요..."
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="comments">종합 평가 의견</Label>
+                    <Textarea
+                      id="comments"
+                      value={comments}
+                      onChange={(e) => setComments(e.target.value)}
+                      rows={4}
+                      placeholder="전체적인 평가 의견을 입력하세요..."
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="status">상태</Label>
-                  <select
-                    id="status"
-                    value={status}
-                    onChange={(e) =>
-                      setStatus(
-                        e.target.value as "draft" | "submitted" | "confirmed"
-                      )
-                    }
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="draft">임시저장</option>
-                    <option value="submitted">제출</option>
-                    {evaluation && <option value="confirmed">확정</option>}
-                  </select>
+                  <div className="space-y-2">
+                    <Label htmlFor="status">상태</Label>
+                    <select
+                      id="status"
+                      value={status}
+                      onChange={(e) =>
+                        setStatus(
+                          e.target.value as "draft" | "submitted" | "confirmed"
+                        )
+                      }
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="draft">임시저장</option>
+                      <option value="submitted">제출</option>
+                      {evaluation && <option value="confirmed">확정</option>}
+                    </select>
+                  </div>
                 </>
               )}
             </div>
@@ -648,7 +660,13 @@ export function NewEvaluationForm({
                 performanceCriteria.length === 0
               }
             >
-              {loading ? "저장 중..." : status === "submitted" && !evaluation ? "서명하고 제출" : evaluation ? "수정" : "저장"}
+              {loading
+                ? "저장 중..."
+                : status === "submitted" && !evaluation
+                ? "서명하고 제출"
+                : evaluation
+                ? "수정"
+                : "저장"}
             </Button>
             <Button
               type="button"
