@@ -51,8 +51,8 @@ export function SubmissionsList({
         scheduleUrl += `competency_unit_id=${competencyUnitId}`;
       }
 
-      const scheduleResponse = await fetch(scheduleUrl, { 
-        next: { revalidate: 60 } // 60초마다 재검증
+      const scheduleResponse = await fetch(scheduleUrl, {
+        next: { revalidate: 60 }, // 60초마다 재검증
       });
       if (!scheduleResponse.ok) {
         throw new Error("평가일정을 불러올 수 없습니다.");
@@ -70,7 +70,11 @@ export function SubmissionsList({
         );
         if (submissionResponse.ok) {
           const submissionData = await submissionResponse.json();
-          setSubmissions(submissionData || []);
+          // API가 페이지네이션 응답을 반환하는 경우 data 속성 확인
+          const submissionsArray = Array.isArray(submissionData)
+            ? submissionData
+            : submissionData?.data || [];
+          setSubmissions(submissionsArray);
         }
       }
     } catch (err: any) {
@@ -169,8 +173,14 @@ export function SubmissionsList({
                 <div>
                   <CardTitle>{schedule.title}</CardTitle>
                   <CardDescription>
-                    {schedule.competency_units?.name} (
-                    {schedule.competency_units?.code})
+                    {Array.isArray(schedule.competency_units)
+                      ? schedule.competency_units[0]?.name
+                      : schedule.competency_units?.name}{" "}
+                    (
+                    {Array.isArray(schedule.competency_units)
+                      ? schedule.competency_units[0]?.code
+                      : schedule.competency_units?.code}
+                    )
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
