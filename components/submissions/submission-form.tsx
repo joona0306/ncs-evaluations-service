@@ -46,21 +46,37 @@ export function SubmissionForm({
 
   // 기존 제출물이 이미지인 경우 API를 통해 이미지 URL 로드
   useEffect(() => {
-    if (existingSubmission?.submission_type === "image" && existingSubmission?.id) {
+    // 삭제 중이거나 로딩 중일 때는 이미지 로드하지 않음
+    if (deleting || loading) {
+      return;
+    }
+
+    if (
+      existingSubmission?.submission_type === "image" &&
+      existingSubmission?.id
+    ) {
       const loadImageUrl = async () => {
         try {
-          const response = await fetch(`/api/submissions/image?id=${existingSubmission.id}`);
+          const response = await fetch(
+            `/api/submissions/image?id=${existingSubmission.id}`
+          );
           if (response.ok) {
             const data = await response.json();
             setFilePreview(data.url);
+          } else {
+            // 404나 500 에러인 경우 (이미 삭제된 경우 등) 조용히 처리
+            if (response.status !== 404 && response.status !== 500) {
+              console.error("이미지 URL 로드 실패:", response.status);
+            }
           }
         } catch (err) {
+          // 삭제된 제출물에 대한 요청은 조용히 처리
           console.error("이미지 URL 로드 실패:", err);
         }
       };
       loadImageUrl();
     }
-  }, [existingSubmission]);
+  }, [existingSubmission, deleting, loading]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -193,24 +209,31 @@ export function SubmissionForm({
 
     setDeleting(true);
     setError(null);
+    // 삭제 중에는 미리보기 제거
+    setFilePreview(null);
 
     try {
-      const response = await fetch(`/api/submissions/${existingSubmission.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/submissions/${existingSubmission.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "과제물 삭제에 실패했습니다.");
       }
 
+      // 삭제 성공 시 즉시 콜백 호출하여 컴포넌트 닫기
+      // onSuccess가 호출되면 컴포넌트가 언마운트되므로 setDeleting(false)는 불필요
       if (onSuccess) {
         onSuccess();
+        return; // 즉시 반환하여 추가 로직 실행 방지
       }
     } catch (err: any) {
       console.error("과제물 삭제 오류:", err);
       setError(err.message || "과제물 삭제에 실패했습니다.");
-    } finally {
       setDeleting(false);
     }
   };
@@ -229,19 +252,28 @@ export function SubmissionForm({
       <CardContent>
         <div className="mb-4 space-y-2">
           <div>
-            <span className="font-medium">평가일정:</span> {evaluationSchedule.title}
+            <span className="font-medium">평가일정:</span>{" "}
+            {evaluationSchedule.title}
           </div>
           <div>
             <span className="font-medium">시작일시:</span>{" "}
-            {format(new Date(evaluationSchedule.start_date), "yyyy년 MM월 dd일 HH:mm", {
-              locale: ko,
-            })}
+            {format(
+              new Date(evaluationSchedule.start_date),
+              "yyyy년 MM월 dd일 HH:mm",
+              {
+                locale: ko,
+              }
+            )}
           </div>
           <div>
             <span className="font-medium">종료일시:</span>{" "}
-            {format(new Date(evaluationSchedule.end_date), "yyyy년 MM월 dd일 HH:mm", {
-              locale: ko,
-            })}
+            {format(
+              new Date(evaluationSchedule.end_date),
+              "yyyy년 MM월 dd일 HH:mm",
+              {
+                locale: ko,
+              }
+            )}
           </div>
           {evaluationSchedule.description && (
             <div>
@@ -321,15 +353,10 @@ export function SubmissionForm({
             />
           </div>
 
-          {error && (
-            <div className="text-sm text-red-600">{error}</div>
-          )}
+          {error && <div className="text-sm text-red-600">{error}</div>}
 
           <div className="flex gap-2">
-            <Button
-              type="submit"
-              disabled={loading || deleting}
-            >
+            <Button type="submit" disabled={loading || deleting}>
               {loading ? "제출 중..." : existingSubmission ? "수정" : "제출"}
             </Button>
             {existingSubmission && (
@@ -358,4 +385,3 @@ export function SubmissionForm({
     </Card>
   );
 }
-
