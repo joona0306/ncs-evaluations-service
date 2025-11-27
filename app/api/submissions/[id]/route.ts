@@ -218,17 +218,42 @@ export async function DELETE(
     }
 
     // DB에서 제출 삭제
-    const { error } = await supabase
+    const { data: deletedData, error } = await supabase
       .from("submissions")
       .delete()
-      .eq("id", params.id);
+      .eq("id", params.id)
+      .select();
 
     if (error) {
       console.error("과제물 삭제 오류:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("삭제 실패 상세:", {
+        submissionId: params.id,
+        studentId: profile.id,
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      return NextResponse.json(
+        {
+          error: error.message || "과제물 삭제에 실패했습니다.",
+          details: error.details,
+          hint: error.hint,
+        },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ success: true });
+    // 삭제된 레코드 확인
+    if (!deletedData || deletedData.length === 0) {
+      console.warn("삭제된 레코드가 없음:", params.id);
+      return NextResponse.json(
+        { error: "삭제할 레코드를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, deleted: deletedData });
   } catch (error: any) {
     console.error("과제물 삭제 실패:", error);
     return NextResponse.json(
