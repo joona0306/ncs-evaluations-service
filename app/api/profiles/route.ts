@@ -65,3 +65,63 @@ export async function GET(request: Request) {
   }
 }
 
+export async function PATCH(request: Request) {
+  try {
+    const profile = await getCurrentUserProfile();
+    
+    if (!profile) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { full_name, phone, birth_date, gender } = body;
+
+    // full_name은 필수 필드
+    if (full_name !== undefined && !full_name?.trim()) {
+      return NextResponse.json(
+        { error: "이름은 필수 항목입니다." },
+        { status: 400 }
+      );
+    }
+
+    // 본인 프로필만 수정 가능
+    const supabase = await createClient();
+
+    // 업데이트할 데이터 준비 (role, email, id는 변경 불가)
+    const updateData: any = {};
+    if (full_name !== undefined) updateData.full_name = full_name.trim();
+    if (phone !== undefined) updateData.phone = phone?.trim() || null;
+    if (birth_date !== undefined) updateData.birth_date = birth_date || null;
+    if (gender !== undefined) updateData.gender = gender || null;
+    // updated_at은 트리거가 자동으로 업데이트하므로 수동 설정 불필요
+    // role, email, id는 보안상 업데이트 불가
+
+    const { data, error: updateError } = await supabase
+      .from("profiles")
+      .update(updateData)
+      .eq("id", profile.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error("프로필 업데이트 오류:", updateError);
+      return NextResponse.json(
+        { 
+          error: updateError.message || "프로필 수정에 실패했습니다.",
+          details: updateError.details,
+          hint: updateError.hint,
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ data }, { status: 200 });
+  } catch (error: any) {
+    console.error("프로필 업데이트 실패:", error);
+    return NextResponse.json(
+      { error: error.message || "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+

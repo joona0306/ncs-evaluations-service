@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +32,6 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,18 +40,24 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
     setLoading(true);
 
     try {
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({
+      const response = await fetch("/api/profiles", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           full_name: fullName,
           phone: phone || null,
           birth_date: birthDate || null,
           gender: gender || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", profile.id);
+        }),
+      });
 
-      if (updateError) throw updateError;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "프로필 수정에 실패했습니다.");
+      }
 
       setSuccess(true);
       router.refresh();
@@ -63,6 +67,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
         setSuccess(false);
       }, 2000);
     } catch (err: any) {
+      console.error("프로필 수정 오류:", err);
       setError(err.message || "프로필 수정에 실패했습니다.");
     } finally {
       setLoading(false);
