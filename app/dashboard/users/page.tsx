@@ -5,7 +5,23 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
-import { UsersList } from "@/components/users/users-list";
+import dynamic from "next/dynamic";
+
+// UsersList를 동적 임포트로 지연 로딩 (코드 스플리팅)
+const UsersList = dynamic(
+  () =>
+    import("@/components/users/users-list").then((mod) => ({
+      default: mod.UsersList,
+    })),
+  {
+    loading: () => (
+      <div className="p-4 text-center text-muted-foreground">
+        사용자 목록 로딩 중...
+      </div>
+    ),
+    ssr: false, // 클라이언트 사이드에서만 렌더링
+  }
+);
 
 export default async function UsersPage() {
   await requireAdmin();

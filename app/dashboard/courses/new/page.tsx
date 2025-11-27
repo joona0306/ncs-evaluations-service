@@ -4,6 +4,8 @@ import Link from "next/link";
 import { BackButton } from "@/components/ui/back-button";
 import { CourseForm } from "@/components/courses/course-form";
 
+export const dynamic = 'force-dynamic';
+
 export default async function NewCoursePage() {
   await requireAdmin();
 
