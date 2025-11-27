@@ -23,16 +23,16 @@ interface NewEvaluationDetailProps {
   evaluation: Evaluation;
 }
 
-export function NewEvaluationDetail({
-  evaluation,
-}: NewEvaluationDetailProps) {
+export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
   const [criteriaScores, setCriteriaScores] = useState<
     (EvaluationCriteriaScore & { performance_criteria: PerformanceCriteria })[]
   >([]);
   const [elements, setElements] = useState<CompetencyElement[]>([]);
   const [signatures, setSignatures] = useState<any[]>([]);
   const [submission, setSubmission] = useState<any>(null);
-  const [submissionImageUrl, setSubmissionImageUrl] = useState<string | null>(null);
+  const [submissionImageUrl, setSubmissionImageUrl] = useState<string | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
@@ -42,7 +42,7 @@ export function NewEvaluationDetail({
       const elementsResponse = await fetch(
         `/api/competency-elements?competency_unit_id=${evaluation.competency_unit_id}`
       );
-      
+
       if (elementsResponse.ok) {
         const elementsData = await elementsResponse.json();
         setElements(elementsData || []);
@@ -80,7 +80,10 @@ export function NewEvaluationDetail({
           setSubmission(submissionData);
 
           // 이미지 타입인 경우 이미지 URL 로드
-          if (submissionData.submission_type === "image" && submissionData.file_url) {
+          if (
+            submissionData.submission_type === "image" &&
+            submissionData.file_url
+          ) {
             const imageResponse = await fetch(
               `/api/submissions/image?id=${evaluation.submission_id}`
             );
@@ -138,13 +141,17 @@ export function NewEvaluationDetail({
             <div>
               <p className="text-sm text-muted-foreground">학생</p>
               <p className="font-medium">
-                {safeText(evaluation.student?.full_name || evaluation.student?.email)}
+                {safeText(
+                  evaluation.student?.full_name || evaluation.student?.email
+                )}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">평가자</p>
               <p className="font-medium">
-                {safeText(evaluation.teacher?.full_name || evaluation.teacher?.email)}
+                {safeText(
+                  evaluation.teacher?.full_name || evaluation.teacher?.email
+                )}
               </p>
             </div>
             <div>
@@ -169,96 +176,200 @@ export function NewEvaluationDetail({
               <div>
                 <p className="text-sm text-muted-foreground">평가일</p>
                 <p className="font-medium">
-                  {new Date(evaluation.evaluated_at).toLocaleDateString("ko-KR")}
+                  {new Date(evaluation.evaluated_at).toLocaleDateString(
+                    "ko-KR"
+                  )}
                 </p>
               </div>
             )}
-            {evaluation.total_score !== null && evaluation.total_score !== undefined && (
-              <div>
-                <p className="text-sm text-muted-foreground">환산 점수</p>
-                <p className="font-medium text-lg text-blue-700">
-                  {evaluation.total_score} / 100점
-                </p>
-              </div>
-            )}
+            {evaluation.total_score !== null &&
+              evaluation.total_score !== undefined && (
+                <div>
+                  <p className="text-sm text-muted-foreground">환산 점수</p>
+                  <p className="font-medium text-lg text-blue-700">
+                    {evaluation.total_score} / 100점
+                  </p>
+                </div>
+              )}
           </div>
 
           {/* 과제물 정보 */}
           {submission && (
             <div className="mt-6 pt-6 border-t">
-              <h4 className="font-semibold mb-4">제출된 과제물</h4>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">제출 유형</p>
-                  <p className="font-medium">
-                    {submission.submission_type === "image" ? "이미지" : "URL"}
-                  </p>
+              <h4 className="font-semibold mb-4 text-lg">제출된 과제물</h4>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">제출 유형:</p>
+                  <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
+                    {submission.submission_type === "image"
+                      ? "이미지 파일"
+                      : "URL"}
+                  </span>
                 </div>
                 {submission.submission_type === "image" && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">이미지</p>
-                    {submissionImageUrl ? (
-                      <div className="space-y-2">
-                        <div className="border rounded p-2 bg-white">
-                          <Image
-                            src={submissionImageUrl}
-                            alt="과제물 이미지"
-                            width={600}
-                            height={400}
-                            className="max-w-full h-auto max-h-96 mx-auto"
-                          />
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        이미지 미리보기
+                      </p>
+                      {submissionImageUrl ? (
+                        <div className="space-y-3">
+                          <div className="border rounded-lg p-4 bg-white shadow-sm">
+                            <Image
+                              src={submissionImageUrl}
+                              alt="과제물 이미지"
+                              width={600}
+                              height={400}
+                              className="max-w-full h-auto max-h-96 mx-auto rounded"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                window.open(
+                                  `/api/submissions/download?id=${submission.id}`,
+                                  "_blank"
+                                );
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                />
+                              </svg>
+                              이미지 다운로드
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                window.open(submissionImageUrl, "_blank");
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                />
+                              </svg>
+                              새 탭에서 열기
+                            </Button>
+                          </div>
+                          {submission.file_name && (
+                            <p className="text-xs text-muted-foreground">
+                              파일명: {submission.file_name}
+                              {submission.file_size && (
+                                <>
+                                  {" "}
+                                  ({(submission.file_size / 1024).toFixed(
+                                    2
+                                  )}{" "}
+                                  KB)
+                                </>
+                              )}
+                            </p>
+                          )}
                         </div>
+                      ) : loading ? (
+                        <p className="text-sm text-muted-foreground">
+                          이미지를 불러오는 중...
+                        </p>
+                      ) : (
+                        <p className="text-sm text-red-600">
+                          이미지를 불러올 수 없습니다.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {submission.submission_type === "url" && submission.url && (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        제출된 URL
+                      </p>
+                      <div className="border rounded-lg p-3 bg-gray-50">
+                        <a
+                          href={submission.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline break-all block mb-2"
+                        >
+                          {submission.url}
+                        </a>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            window.open(
-                              `/api/submissions/download?id=${submission.id}`,
-                              "_blank"
-                            );
+                            window.open(submission.url, "_blank");
                           }}
+                          className="flex items-center gap-2"
                         >
-                          다운로드
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                          새 탭에서 열기
                         </Button>
                       </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">이미지를 불러오는 중...</p>
-                    )}
-                  </div>
-                )}
-                {submission.submission_type === "url" && submission.url && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">URL</p>
-                    <a
-                      href={submission.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline break-all"
-                    >
-                      {submission.url}
-                    </a>
+                    </div>
                   </div>
                 )}
                 {submission.comments && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">코멘트</p>
-                    <p className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded">
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">
+                      제출 코멘트
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded border">
                       {safeText(submission.comments)}
                     </p>
                   </div>
                 )}
                 {submission.submitted_at && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">제출일</p>
-                    <p className="text-sm">
-                      {new Date(submission.submitted_at).toLocaleString("ko-KR")}
+                  <div className="border-t pt-4">
+                    <p className="text-sm text-muted-foreground">제출일시</p>
+                    <p className="text-sm font-medium">
+                      {new Date(submission.submitted_at).toLocaleString(
+                        "ko-KR"
+                      )}
                     </p>
                   </div>
                 )}
               </div>
             </div>
           )}
-          
+
           {/* 서명 정보 */}
           {signatures.length > 0 && (
             <div className="mt-6 pt-6 border-t">
@@ -267,12 +378,17 @@ export function NewEvaluationDetail({
                 {signatures.map((sig) => {
                   const isTeacher = sig.signer_role === "teacher";
                   const isStudent = sig.signer_role === "student";
-                  const signerName = sig.signer?.full_name || sig.signer?.email || "알 수 없음";
-                  
+                  const signerName =
+                    sig.signer?.full_name || sig.signer?.email || "알 수 없음";
+
                   return (
                     <div key={sig.id} className="space-y-2">
                       <p className="text-sm text-muted-foreground">
-                        {isTeacher ? "훈련교사 서명" : isStudent ? "훈련생 서명" : "서명"}
+                        {isTeacher
+                          ? "훈련교사 서명"
+                          : isStudent
+                          ? "훈련생 서명"
+                          : "서명"}
                       </p>
                       <div className="border rounded p-2 bg-white">
                         <Image
@@ -290,7 +406,11 @@ export function NewEvaluationDetail({
                         {isStudent && (
                           <a
                             href={sig.signature_data}
-                            download={`${signerName}_서명_${new Date(sig.signed_at).toISOString().split('T')[0]}.png`}
+                            download={`${signerName}_서명_${
+                              new Date(sig.signed_at)
+                                .toISOString()
+                                .split("T")[0]
+                            }.png`}
                             className="text-xs text-blue-600 hover:text-blue-800 underline"
                           >
                             다운로드
@@ -350,7 +470,8 @@ export function NewEvaluationDetail({
               {elements.map((element) => {
                 // 이 요소에 속한 수행준거 점수 필터링
                 const elementCriteriaScores = criteriaScores.filter(
-                  (cs) => cs.performance_criteria.competency_element_id === element.id
+                  (cs) =>
+                    cs.performance_criteria.competency_element_id === element.id
                 );
 
                 if (elementCriteriaScores.length === 0) return null;
@@ -369,7 +490,9 @@ export function NewEvaluationDetail({
                           코드: {safeText(element.code)}
                         </p>
                         {element.description && (
-                          <p className="text-sm mt-1">{safeText(element.description)}</p>
+                          <p className="text-sm mt-1">
+                            {safeText(element.description)}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -389,7 +512,8 @@ export function NewEvaluationDetail({
                                   </h5>
                                   <span
                                     className={`text-xs px-2 py-0.5 rounded ${
-                                      cs.performance_criteria.difficulty === "high"
+                                      cs.performance_criteria.difficulty ===
+                                      "high"
                                         ? "bg-red-100 text-red-800"
                                         : cs.performance_criteria.difficulty ===
                                           "medium"
@@ -397,7 +521,8 @@ export function NewEvaluationDetail({
                                         : "bg-green-100 text-green-800"
                                     }`}
                                   >
-                                    {cs.performance_criteria.difficulty === "high"
+                                    {cs.performance_criteria.difficulty ===
+                                    "high"
                                       ? "상"
                                       : cs.performance_criteria.difficulty ===
                                         "medium"
@@ -461,7 +586,9 @@ export function NewEvaluationDetail({
             <CardTitle>종합 평가 의견</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="whitespace-pre-wrap">{safeText(evaluation.comments)}</p>
+            <p className="whitespace-pre-wrap">
+              {safeText(evaluation.comments)}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -470,9 +597,7 @@ export function NewEvaluationDetail({
       <Card>
         <CardHeader>
           <CardTitle>서명</CardTitle>
-          <CardDescription>
-            평가 내용을 확인하고 서명해주세요
-          </CardDescription>
+          <CardDescription>평가 내용을 확인하고 서명해주세요</CardDescription>
         </CardHeader>
         <CardContent>
           <Link href={`/dashboard/evaluations/${evaluation.id}/sign`}>
@@ -483,4 +608,3 @@ export function NewEvaluationDetail({
     </div>
   );
 }
-

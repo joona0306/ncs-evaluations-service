@@ -12,10 +12,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 교사와 관리자만 다운로드 가능
-    if (profile.role !== "admin" && profile.role !== "teacher") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    // 학생, 교사, 관리자 모두 다운로드 가능 (권한은 각각 확인)
 
     const { searchParams } = new URL(request.url);
     const submissionId = searchParams.get("id");
@@ -45,8 +42,14 @@ export async function GET(request: Request) {
         );
       }
 
-      // 권한 확인: 교사는 해당 훈련과정의 교사여야 함
-      if (profile.role === "teacher") {
+      // 권한 확인
+      if (profile.role === "student") {
+        // 학생은 자신이 제출한 과제물만 다운로드 가능
+        if (submission.student_id !== profile.id) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+      } else if (profile.role === "teacher") {
+        // 교사는 해당 훈련과정의 교사여야 함
         const courseId =
           submission.competency_units?.course_id ||
           submission.competency_units?.training_courses?.id;
@@ -64,6 +67,7 @@ export async function GET(request: Request) {
           }
         }
       }
+      // 관리자는 모든 과제물 다운로드 가능
 
       // 파일 경로 추출
       const pathToUse = submission.file_url || submission.url;
