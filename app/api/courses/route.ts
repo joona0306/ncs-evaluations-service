@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { getCurrentUserProfile } from "@/lib/auth";
+import { CreateCourseSchema, UpdateCourseSchema } from "@/lib/validation/schemas";
+import { validateRequest } from "@/lib/validation/api-validator";
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +20,7 @@ export async function GET(request: Request) {
       // 관리자는 모든 훈련과정 조회
       const { data, error } = await supabase
         .from("training_courses")
-        .select("*")
+        .select("id, name, code, start_date, end_date, description, created_at")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -98,17 +100,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // 요청 본문 파싱
+    // 요청 본문 파싱 및 검증
     const body = await request.json();
-    const { name, code, start_date, end_date, description } = body;
-
-    // 데이터 검증
-    if (!name || !code || !start_date || !end_date) {
-      return NextResponse.json(
-        { error: "필수 필드가 누락되었습니다." },
-        { status: 400 }
-      );
+    const validation = validateRequest(CreateCourseSchema, body);
+    
+    if (!validation.success) {
+      return validation.response;
     }
+
+    const { name, code, start_date, end_date, description } = validation.data;
 
     // 과정 생성
     const { data: course, error: insertError } = await supabase
@@ -183,16 +183,15 @@ export async function PUT(request: Request) {
       );
     }
 
-    // 요청 본문 파싱
+    // 요청 본문 파싱 및 검증
     const body = await request.json();
-    const { id, name, code, start_date, end_date, description } = body;
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "과정 ID가 필요합니다." },
-        { status: 400 }
-      );
+    const validation = validateRequest(UpdateCourseSchema, body);
+    
+    if (!validation.success) {
+      return validation.response;
     }
+
+    const { id, name, code, start_date, end_date, description } = validation.data;
 
     // 과정 수정
     const { data: course, error: updateError } = await supabase

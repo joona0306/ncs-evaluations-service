@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PerformanceCriteriaForm } from "./performance-criteria-form";
@@ -12,6 +11,9 @@ import {
   DIFFICULTY_SCORE_OPTIONS,
 } from "@/types/evaluation";
 import { useCanManage } from "@/stores/auth-store";
+import { useListData } from "@/lib/hooks/use-list-data";
+import { useDeleteItem } from "@/lib/hooks/use-delete-item";
+import { useDialogForm } from "@/lib/hooks/use-dialog-form";
 
 interface PerformanceCriteriaListProps {
   competencyElementId: string;
@@ -20,68 +22,43 @@ interface PerformanceCriteriaListProps {
 export function PerformanceCriteriaList({
   competencyElementId,
 }: PerformanceCriteriaListProps) {
-  const [criteria, setCriteria] = useState<PerformanceCriteria[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showDialog, setShowDialog] = useState(false);
-  const [editingCriteria, setEditingCriteria] = useState<
-    PerformanceCriteria | undefined
-  >();
   const canManage = useCanManage();
 
-  const loadCriteria = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `/api/performance-criteria?competency_element_id=${competencyElementId}`
-      );
+  // 공통 훅 사용
+  const {
+    data: criteria,
+    loading,
+    refetch: loadCriteria,
+  } = useListData<PerformanceCriteria>({
+    apiUrl: `/api/performance-criteria?competency_element_id=${competencyElementId}`,
+    enabled: !!competencyElementId,
+  });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "수행준거를 불러올 수 없습니다.");
-      }
+  const { deleteItem } = useDeleteItem({
+    onSuccess: loadCriteria,
+    confirmMessage: "이 수행준거를 삭제하시겠습니까?",
+  });
 
-      const data = await response.json();
-      setCriteria(data || []);
-    } catch (error: any) {
-      console.error("수행준거 로드 실패:", error);
-      alert(`수행준거를 불러오는 중 오류가 발생했습니다: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [competencyElementId]);
+  const {
+    showDialog,
+    editingItem: editingCriteria,
+    openDialog,
+    closeDialog,
+    handleSuccess,
+  } = useDialogForm<PerformanceCriteria>({
+    onSuccess: loadCriteria,
+  });
 
-  useEffect(() => {
-    loadCriteria();
-  }, [loadCriteria]);
-
-  const handleDelete = async (criteriaId: string) => {
-    if (!confirm("이 수행준거를 삭제하시겠습니까?")) return;
-
-    const response = await fetch(`/api/performance-criteria/${criteriaId}`, {
-      method: "DELETE",
-    });
-
-    if (response.ok) {
-      loadCriteria();
-    } else {
-      alert("삭제에 실패했습니다.");
-    }
+  const handleDelete = (criteriaId: string) => {
+    deleteItem(`/api/performance-criteria/${criteriaId}`, "수행준거");
   };
 
   const handleAdd = () => {
-    setEditingCriteria(undefined);
-    setShowDialog(true);
+    openDialog();
   };
 
   const handleEdit = (criterion: PerformanceCriteria) => {
-    setEditingCriteria(criterion);
-    setShowDialog(true);
-  };
-
-  const handleSuccess = () => {
-    setShowDialog(false);
-    setEditingCriteria(undefined);
-    loadCriteria();
+    openDialog(criterion);
   };
 
   if (loading) {
@@ -166,7 +143,7 @@ export function PerformanceCriteriaList({
               competencyElementId={competencyElementId}
               criterion={editingCriteria}
               onSuccess={handleSuccess}
-              onCancel={() => setShowDialog(false)}
+              onCancel={closeDialog}
             />
           </CardContent>
         </Card>

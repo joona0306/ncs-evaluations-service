@@ -7,7 +7,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
-import { SignatureModal } from "@/components/signatures/signature-modal";
+import dynamic from "next/dynamic";
+
+// SignatureModal을 동적 임포트로 지연 로딩 (react-signature-canvas 라이브러리 크기 감소)
+const SignatureModal = dynamic(
+  () => import("@/components/signatures/signature-modal").then((mod) => ({ default: mod.SignatureModal })),
+  {
+    loading: () => (
+      <div className="p-4 text-center text-muted-foreground">
+        서명 모달 로딩 중...
+      </div>
+    ),
+    ssr: false, // 클라이언트 사이드에서만 렌더링
+  }
+);
 import { useAuthStore } from "@/stores/auth-store";
 import {
   Card,
@@ -60,7 +73,7 @@ export default function SignEvaluationPage() {
           fetch(`/api/evaluations/${id}`, { signal: controller.signal }),
           fetch(`/api/signatures?evaluation_id=${id}&t=${Date.now()}`, {
             signal: controller.signal,
-            cache: "no-store",
+            next: { revalidate: 60 }, // 서명 데이터는 자주 변경되지 않음
           }),
         ]);
 
@@ -302,7 +315,6 @@ export default function SignEvaluationPage() {
                         width={400}
                         height={128}
                         className="max-w-full h-auto max-h-32 mx-auto border rounded bg-white p-2"
-                        unoptimized
                       />
                       <div className="flex gap-2 justify-center">
                         <Button
@@ -412,7 +424,6 @@ export default function SignEvaluationPage() {
                       width={400}
                       height={128}
                       className="max-w-full h-auto max-h-32 mt-2 border rounded"
-                      unoptimized
                     />
                     </div>
                   );

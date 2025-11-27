@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
+import { CreateEvaluationSchema, UpdateEvaluationSchema } from "@/lib/validation/schemas";
+import { validateRequest } from "@/lib/validation/api-validator";
+import { getPaginationParams, createPaginatedResponse } from "@/lib/api/pagination";
 
 export async function GET(request: Request) {
   try {
@@ -14,33 +17,67 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const { limit, offset } = getPaginationParams(searchParams);
+
     const supabase = await createClient();
+
+    // 전체 개수 조회 (페이징용)
+    let countQuery = supabase
+      .from("evaluations")
+      .select("*", { count: "exact", head: true });
 
     let query = supabase
       .from("evaluations")
       .select(
         `
-        *,
+        id,
+        competency_unit_id,
+        student_id,
+        teacher_id,
+        status,
+        evaluated_at,
+        submission_id,
+        comments,
+        total_score,
+        raw_total_score,
+        created_at,
+        updated_at,
         competency_units(
-          *,
-          training_courses(*)
+          id,
+          name,
+          code,
+          description,
+          training_courses(
+            id,
+            name,
+            code
+          )
         ),
-        student:profiles!evaluations_student_id_fkey(*),
-        teacher:profiles!evaluations_teacher_id_fkey(*)
+        student:profiles!evaluations_student_id_fkey(
+          id,
+          full_name,
+          email
+        ),
+        teacher:profiles!evaluations_teacher_id_fkey(
+          id,
+          full_name,
+          email
+        )
       `
       );
 
     // 교사는 자신의 평가만 조회
     if (profile.role === "teacher") {
       query = query.eq("teacher_id", profile.id);
+      countQuery = countQuery.eq("teacher_id", profile.id);
     }
 
-    // 관리자는 모든 평가 조회 (최대 50개)
-    if (profile.role === "admin") {
-      query = query.limit(50);
-    }
+    // 페이징 적용
+    query = query.range(offset, offset + limit - 1);
 
     const { data, error } = await query.order("created_at", { ascending: false });
+    const { count } = await countQuery;
 
     if (error) {
       console.error("평가 목록 조회 오류:", error);
@@ -50,7 +87,10 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json(data || []);
+    // 페이징 정보와 함께 응답
+    return NextResponse.json(
+      createPaginatedResponse(data || [], limit, offset, count || undefined)
+    );
   } catch (error: any) {
     console.error("평가 목록 조회 실패:", error);
     return NextResponse.json(
@@ -69,6 +109,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const validation = validateRequest(CreateEvaluationSchema, body);
+    
+    if (!validation.success) {
+      return validation.response;
+    }
+
     const {
       competency_unit_id,
       student_id,
@@ -78,16 +124,7 @@ export async function POST(request: Request) {
       evaluated_at,
       submission_id,
       element_scores, // 수행준거별 점수 (criteria_id 포함)
-    } = body;
-
-    if (!competency_unit_id || !student_id || !teacher_id) {
-      return NextResponse.json(
-        {
-          error: "competency_unit_id, student_id, and teacher_id are required",
-        },
-        { status: 400 }
-      );
-    }
+    } = validation.data;
 
     const supabase = await createClient();
 
@@ -235,6 +272,12 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
+    const validation = validateRequest(UpdateEvaluationSchema, body);
+    
+    if (!validation.success) {
+      return validation.response;
+    }
+
     const {
       id,
       competency_unit_id,
@@ -245,14 +288,7 @@ export async function PUT(request: Request) {
       evaluated_at,
       submission_id,
       element_scores, // 수행준거별 점수 (criteria_id 포함)
-    } = body;
-
-    if (!id) {
-      return NextResponse.json(
-        { error: "evaluation id is required" },
-        { status: 400 }
-      );
-    }
+    } = validation.data;
 
     const supabase = await createClient();
 

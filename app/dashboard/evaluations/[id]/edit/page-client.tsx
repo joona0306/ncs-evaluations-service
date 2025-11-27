@@ -22,9 +22,9 @@ export default function EditEvaluationPageClient() {
     setLoading(true);
     setError(null);
     try {
-      // 평가 데이터 로드
+      // 평가 데이터 로드 (수정 페이지는 항상 최신 데이터 필요)
       const evalResponse = await fetch(`/api/evaluations/${params.id}`, {
-        cache: "no-store",
+        next: { revalidate: 0 }, // 수정 페이지는 항상 최신 데이터 필요
       });
 
       if (!evalResponse.ok) {
@@ -44,7 +44,7 @@ export default function EditEvaluationPageClient() {
 
       // 훈련과정 목록 로드
       const coursesResponse = await fetch("/api/courses", {
-        cache: "no-store",
+        next: { revalidate: 60 }, // 훈련과정 목록은 자주 변경되지 않음
       });
 
       if (!coursesResponse.ok) {

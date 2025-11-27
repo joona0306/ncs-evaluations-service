@@ -166,6 +166,7 @@ export function CompetencyUnits({ courseId }: CompetencyUnitsProps) {
                             e.stopPropagation();
                             handleEdit(unit);
                           }}
+                          aria-label={`${unit.name} 능력단위 수정`}
                         >
                           수정
                         </Button>
@@ -176,6 +177,7 @@ export function CompetencyUnits({ courseId }: CompetencyUnitsProps) {
                             e.stopPropagation();
                             handleDelete(unit.id);
                           }}
+                          aria-label={`${unit.name} 능력단위 삭제`}
                         >
                           삭제
                         </Button>

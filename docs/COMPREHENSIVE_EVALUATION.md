@@ -489,8 +489,14 @@ export async function apiHandler(
    - 중복 코드 제거
 
 10. **모바일 최적화**
+
     - 반응형 레이아웃 개선
     - 터치 인터랙션 최적화
+
+11. **상태관리**
+
+- React Query 도입(서버 상태)
+- Zustand는 클라이언트 상태만
 
 ---
 

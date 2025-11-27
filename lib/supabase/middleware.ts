@@ -39,18 +39,90 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // 인증 페이지: 로그인된 사용자는 대시보드로
+  // 이메일 확인 페이지는 모든 사용자에게 접근 허용
+  if (pathname.startsWith("/verify-email")) {
+    return supabaseResponse;
+  }
+
+  // 인증 페이지: 로그인된 사용자는 대시보드로 (단, 이메일 확인 및 승인 필요)
   if (pathname.startsWith("/login") || pathname.startsWith("/signup")) {
     if (user) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      // 이메일 확인 및 승인 상태 확인
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (authUser?.email_confirmed_at) {
+        // 프로필 확인
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("approved")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        // 이메일 확인 완료 + 관리자 승인 완료인 경우에만 대시보드로
+        if (profile?.approved) {
+          return NextResponse.redirect(new URL("/dashboard", request.url));
+        } else {
+          // 이메일 확인은 완료되었지만 승인이 안 된 경우
+          return NextResponse.redirect(new URL("/waiting-approval", request.url));
+        }
+      } else {
+        // 이메일 확인이 안 된 경우
+        return NextResponse.redirect(new URL("/verify-email", request.url));
+      }
     }
     return supabaseResponse;
   }
 
-  // 대시보드 및 보호된 페이지: 로그인 필수
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/api")) {
+  // 대기 페이지는 이메일 확인 완료된 사용자만 접근 가능
+  if (pathname.startsWith("/waiting-approval")) {
     if (!user) {
       return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    
+    if (!authUser?.email_confirmed_at) {
+      return NextResponse.redirect(new URL("/verify-email", request.url));
+    }
+
+    // 이미 승인된 경우 대시보드로
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("approved")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.approved) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    return supabaseResponse;
+  }
+
+  // 대시보드 및 보호된 페이지: 로그인 + 이메일 확인 + 관리자 승인 필수
+  if (pathname.startsWith("/dashboard") || (pathname.startsWith("/api") && !pathname.startsWith("/api/auth"))) {
+    if (!user) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    // 이메일 확인 상태 확인
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    
+    if (!authUser?.email_confirmed_at) {
+      // 이메일 확인이 안 된 경우 이메일 확인 페이지로 리다이렉트
+      return NextResponse.redirect(new URL("/verify-email", request.url));
+    }
+
+    // 프로필 확인 (이메일 확인 완료 + 관리자 승인 필요)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("approved")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!profile?.approved) {
+      // 관리자 승인이 안 된 경우 대기 페이지로 리다이렉트
+      return NextResponse.redirect(new URL("/waiting-approval", request.url));
     }
   }
 

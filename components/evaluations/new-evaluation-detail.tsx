@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { safeText } from "@/lib/utils/safe-render";
 import {
   Card,
   CardContent,
@@ -130,20 +131,20 @@ export function NewEvaluationDetail({
             <div>
               <p className="text-sm text-muted-foreground">능력단위</p>
               <p className="font-medium">
-                {evaluation.competency_units?.name} (
+                {safeText(evaluation.competency_units?.name)} (
                 {evaluation.competency_units?.code})
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">학생</p>
               <p className="font-medium">
-                {evaluation.student?.full_name || evaluation.student?.email}
+                {safeText(evaluation.student?.full_name || evaluation.student?.email)}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">평가자</p>
               <p className="font-medium">
-                {evaluation.teacher?.full_name || evaluation.teacher?.email}
+                {safeText(evaluation.teacher?.full_name || evaluation.teacher?.email)}
               </p>
             </div>
             <div>
@@ -205,7 +206,6 @@ export function NewEvaluationDetail({
                             width={600}
                             height={400}
                             className="max-w-full h-auto max-h-96 mx-auto"
-                            unoptimized
                           />
                         </div>
                         <Button
@@ -243,7 +243,7 @@ export function NewEvaluationDetail({
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">코멘트</p>
                     <p className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded">
-                      {submission.comments}
+                      {safeText(submission.comments)}
                     </p>
                   </div>
                 )}
@@ -281,7 +281,6 @@ export function NewEvaluationDetail({
                           width={200}
                           height={80}
                           className="max-w-full h-auto max-h-20"
-                          unoptimized
                         />
                       </div>
                       <div className="flex items-center justify-between">
@@ -364,13 +363,13 @@ export function NewEvaluationDetail({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h4 className="font-medium text-lg mb-1">
-                          {element.name}
+                          {safeText(element.name)}
                         </h4>
                         <p className="text-sm text-muted-foreground">
-                          코드: {element.code}
+                          코드: {safeText(element.code)}
                         </p>
                         {element.description && (
-                          <p className="text-sm mt-1">{element.description}</p>
+                          <p className="text-sm mt-1">{safeText(element.description)}</p>
                         )}
                       </div>
                     </div>
@@ -386,7 +385,7 @@ export function NewEvaluationDetail({
                               <div className="space-y-1 mb-1">
                                 <div className="flex items-center gap-2">
                                   <h5 className="font-medium">
-                                    {cs.performance_criteria.name}
+                                    {safeText(cs.performance_criteria.name)}
                                   </h5>
                                   <span
                                     className={`text-xs px-2 py-0.5 rounded ${
@@ -432,7 +431,7 @@ export function NewEvaluationDetail({
                                 평가 의견
                               </p>
                               <p className="text-sm whitespace-pre-wrap">
-                                {cs.comments}
+                                {safeText(cs.comments)}
                               </p>
                             </div>
                           )}
@@ -462,7 +461,7 @@ export function NewEvaluationDetail({
             <CardTitle>종합 평가 의견</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="whitespace-pre-wrap">{evaluation.comments}</p>
+            <p className="whitespace-pre-wrap">{safeText(evaluation.comments)}</p>
           </CardContent>
         </Card>
       )}

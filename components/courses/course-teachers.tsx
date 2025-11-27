@@ -59,13 +59,15 @@ export function CourseTeachers({ courseId }: CourseTeachersProps) {
         return;
       }
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      if (data) {
-        setAllTeachers(data);
-        if (data.length > 0 && !selectedTeacher) {
-          setSelectedTeacher(data[0].id);
-        }
+      // 페이징 응답 형식 처리
+      const teachersList = Array.isArray(responseData) 
+        ? responseData 
+        : (responseData?.data || []);
+
+      if (Array.isArray(teachersList)) {
+        setAllTeachers(teachersList);
       } else {
         setAllTeachers([]);
       }
@@ -73,7 +75,7 @@ export function CourseTeachers({ courseId }: CourseTeachersProps) {
       console.error("모든 훈련교사 로드 실패:", error);
       setAllTeachers([]);
     }
-  }, [selectedTeacher]);
+  }, []);
 
   useEffect(() => {
     loadTeachers();
@@ -153,9 +155,9 @@ export function CourseTeachers({ courseId }: CourseTeachersProps) {
                 className="w-[200px]"
               >
                 <option value="">교사 선택</option>
-                {allTeachers
+                {Array.isArray(allTeachers) && allTeachers
                   .filter(
-                    (teacher) => !teachers.some((t) => t.id === teacher.id)
+                    (teacher) => !teachers.some((t) => t.teacher_id === teacher.id || t.id === teacher.id)
                   )
                   .map((teacher) => (
                     <option key={teacher.id} value={teacher.id}>

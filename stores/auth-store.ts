@@ -1,16 +1,6 @@
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
-
-export interface Profile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: "admin" | "teacher" | "student";
-  phone: string | null;
-  created_at: string;
-  updated_at: string;
-  approved?: boolean;
-}
+import { Profile } from "@/types/common";
 
 interface AuthState {
   // State
