@@ -73,4 +73,5 @@
   - 설정 가이드 통합 (scripts/create-admin.md, scripts/test-email-verification.md, scripts/performance-test.md → docs/SETUP_GUIDES.md)
   - 마이그레이션 가이드 통합 (supabase/migrations/README.md → MIGRATION_CONSOLIDATION.md)
   - E2E 테스트 가이드 통합 (e2e/README.md → TESTING.md)
+  - Lazy Loading 문서 통합 (LAZY_LOADING_STATUS.md, LAZY_LOADING_RECOMMENDATION.md → PERFORMANCE_OPTIMIZATION.md)
   - 문서 인덱스 업데이트

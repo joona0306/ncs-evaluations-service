@@ -11,10 +11,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateProfileButton } from "@/components/profile/create-profile-button";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
+
+// 동적 렌더링 강제 (cookies 사용)
+// force-dynamic을 사용하면 revalidate는 무시됩니다
+export const dynamic = 'force-dynamic';
 
 // AchievementOverview를 동적 임포트로 지연 로딩 (코드 스플리팅)
-const AchievementOverviewLazy = dynamic(
+const AchievementOverviewLazy = dynamicImport(
   () => import("@/components/admin/achievement-overview").then((mod) => ({ default: mod.AchievementOverview })),
   {
     loading: () => (
@@ -25,9 +29,6 @@ const AchievementOverviewLazy = dynamic(
     ssr: false, // 클라이언트 사이드에서만 렌더링
   }
 );
-
-// 캐싱 전략: 30초마다 재검증 (데이터가 자주 변경되지 않으므로)
-export const revalidate = 30;
 
 export default async function DashboardPage() {
   // 미들웨어에서 인증 확인 완료, 프로필만 조회

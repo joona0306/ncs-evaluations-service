@@ -7,8 +7,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { BackButton } from "@/components/ui/back-button";
-import { EvaluationSchedulesManager } from "@/components/evaluations/evaluation-schedules-manager";
+import dynamic from "next/dynamic";
 import { CardSkeleton } from "@/components/ui/skeleton";
+
+// EvaluationSchedulesManager를 동적 임포트로 지연 로딩 (코드 스플리팅)
+const EvaluationSchedulesManager = dynamic(
+  () =>
+    import("@/components/evaluations/evaluation-schedules-manager").then(
+      (mod) => ({
+        default: mod.EvaluationSchedulesManager,
+      })
+    ),
+  {
+    loading: () => (
+      <div className="p-4 text-center text-muted-foreground">
+        평가일정 관리 로딩 중...
+      </div>
+    ),
+    ssr: false, // 클라이언트 사이드에서만 렌더링
+  }
+);
 
 export default function EvaluationSchedulesPage() {
   const router = useRouter();

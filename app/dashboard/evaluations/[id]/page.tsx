@@ -4,9 +4,25 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
-import { NewEvaluationDetail } from "@/components/evaluations/new-evaluation-detail";
+import dynamic from "next/dynamic";
 import { EvaluationDeleteButton } from "@/components/evaluations/evaluation-delete-button";
 import { CardSkeleton } from "@/components/ui/skeleton";
+
+// NewEvaluationDetail을 동적 임포트로 지연 로딩 (코드 스플리팅)
+const NewEvaluationDetail = dynamic(
+  () =>
+    import("@/components/evaluations/new-evaluation-detail").then((mod) => ({
+      default: mod.NewEvaluationDetail,
+    })),
+  {
+    loading: () => (
+      <div className="p-4 text-center text-muted-foreground">
+        평가 상세 로딩 중...
+      </div>
+    ),
+    ssr: false, // 클라이언트 사이드에서만 렌더링
+  }
+);
 
 // 캐싱 전략: 30초마다 재검증
 export const revalidate = 30;
@@ -27,7 +43,8 @@ export default async function EvaluationDetailPage({
   // 서버에서 평가 데이터 직접 조회
   const { data: evaluation, error } = await supabase
     .from("evaluations")
-    .select(`
+    .select(
+      `
       id,
       competency_unit_id,
       student_id,
@@ -61,7 +78,8 @@ export default async function EvaluationDetailPage({
         full_name,
         email
       )
-    `)
+    `
+    )
     .eq("id", params.id)
     .single();
 
@@ -91,12 +109,15 @@ export default async function EvaluationDetailPage({
         <div>
           <h2 className="text-3xl font-bold mb-2">평가 상세</h2>
           <p className="text-muted-foreground">
-            {Array.isArray(evaluation.competency_units) 
-              ? (evaluation.competency_units as any[])[0]?.name 
-              : (evaluation.competency_units as any)?.name} -{" "}
+            {Array.isArray(evaluation.competency_units)
+              ? (evaluation.competency_units as any[])[0]?.name
+              : (evaluation.competency_units as any)?.name}{" "}
+            -{" "}
             {Array.isArray(evaluation.student)
-              ? (evaluation.student as any[])[0]?.full_name || (evaluation.student as any[])[0]?.email
-              : (evaluation.student as any)?.full_name || (evaluation.student as any)?.email}
+              ? (evaluation.student as any[])[0]?.full_name ||
+                (evaluation.student as any[])[0]?.email
+              : (evaluation.student as any)?.full_name ||
+                (evaluation.student as any)?.email}
           </p>
         </div>
         {canEdit && (

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const profile = await getCurrentUserProfile();

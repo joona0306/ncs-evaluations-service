@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getPaginationParams, createPaginatedResponse } from "@/lib/api/pagination";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const profile = await getCurrentUserProfile();
