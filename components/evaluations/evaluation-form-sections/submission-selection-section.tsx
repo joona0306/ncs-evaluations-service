@@ -89,8 +89,11 @@ export function SubmissionSelectionSection({
   selectedSubmissionId,
   onSubmissionChange,
 }: SubmissionSelectionSectionProps) {
+  // submissions가 배열이 아닌 경우 처리
+  const submissionsArray = Array.isArray(submissions) ? submissions : [];
+  
   // 과제물이 없어도 섹션을 표시하여 사용자에게 알림
-  if (submissions.length === 0) {
+  if (submissionsArray.length === 0) {
     return (
       <div className="space-y-2">
         <Label htmlFor="submission">과제물 (선택사항)</Label>
@@ -101,7 +104,7 @@ export function SubmissionSelectionSection({
     );
   }
 
-  const selectedSubmission = submissions.find(
+  const selectedSubmission = submissionsArray.find(
     (s) => s.id === selectedSubmissionId
   );
 
@@ -115,7 +118,7 @@ export function SubmissionSelectionSection({
         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
       >
         <option value="">과제물 없이 평가</option>
-        {submissions.map((submission) => (
+        {submissionsArray.map((submission) => (
           <option key={submission.id} value={submission.id}>
             {submission.submission_type === "image"
               ? `이미지: ${submission.file_name || "파일"}`

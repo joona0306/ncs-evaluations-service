@@ -99,14 +99,26 @@ export function EvaluationForm({
 
     if (data) {
       const studentList = data
-        .filter((cs: any) => cs.profiles) // profiles가 null이 아닌 경우만 필터
-        .map((cs: any) => ({
-          id: cs.student_id,
-          email: cs.profiles.email,
-          full_name: cs.profiles.full_name,
-          phone: cs.profiles.phone,
-          role: cs.profiles.role,
-        }));
+        .filter((cs: any) => {
+          // profiles가 배열 또는 객체일 수 있음
+          const profile = Array.isArray(cs.profiles)
+            ? cs.profiles[0]
+            : cs.profiles;
+          return profile; // profiles가 null이 아닌 경우만 필터
+        })
+        .map((cs: any) => {
+          // profiles가 배열 또는 객체일 수 있음
+          const profile = Array.isArray(cs.profiles)
+            ? cs.profiles[0]
+            : cs.profiles;
+          return {
+            id: cs.student_id,
+            email: profile?.email || "",
+            full_name: profile?.full_name || "",
+            phone: profile?.phone || "",
+            role: profile?.role || "",
+          };
+        });
       setStudents(studentList);
     }
   }, [selectedCourse, supabase]);
@@ -178,7 +190,9 @@ export function EvaluationForm({
     setScores({ ...scores, [key]: value });
   };
 
-  const currentUnit = competencyUnits.find((u) => u.id === selectedUnit);
+  // competencyUnits가 배열이 아닌 경우 처리
+  const competencyUnitsArray = Array.isArray(competencyUnits) ? competencyUnits : [];
+  const currentUnit = competencyUnitsArray.find((u) => u.id === selectedUnit);
   const criteria = currentUnit?.evaluation_criteria || {};
 
   return (

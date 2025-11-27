@@ -116,7 +116,9 @@ export function NewEvaluationForm({
       }
 
       const data = await response.json();
-      setSubmissions(data || []);
+      // API 응답이 배열이 아닌 객체일 수 있음 (페이지네이션 등)
+      const submissionsArray = Array.isArray(data) ? data : data?.data || [];
+      setSubmissions(submissionsArray);
     } catch (error: any) {
       console.error("과제물 로드 실패:", error);
       setSubmissions([]);
@@ -258,12 +260,24 @@ export function NewEvaluationForm({
 
       const data = await response.json();
       const studentList = data
-        .filter((cs: any) => cs.profiles && cs.status === "active")
-        .map((cs: any) => ({
-          id: cs.student_id,
-          email: cs.profiles.email,
-          full_name: cs.profiles.full_name,
-        }));
+        .filter((cs: any) => {
+          // profiles가 배열 또는 객체일 수 있음
+          const profile = Array.isArray(cs.profiles)
+            ? cs.profiles[0]
+            : cs.profiles;
+          return profile && cs.status === "active";
+        })
+        .map((cs: any) => {
+          // profiles가 배열 또는 객체일 수 있음
+          const profile = Array.isArray(cs.profiles)
+            ? cs.profiles[0]
+            : cs.profiles;
+          return {
+            id: cs.student_id,
+            email: profile?.email || "",
+            full_name: profile?.full_name || "",
+          };
+        });
       setStudents(studentList);
     } catch (error: any) {
       console.error("훈련생 로드 실패:", error);
