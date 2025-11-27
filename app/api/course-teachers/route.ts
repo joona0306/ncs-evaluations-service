@@ -63,11 +63,27 @@ export async function GET(request: Request) {
     // teacher_id로 조회한 경우: 훈련과정 목록 반환
     if (courseId) {
       const teachersList =
-        data?.map((ct: any) => ct.profiles).filter(Boolean) || [];
+        data
+          ?.map((ct: any) => {
+            // Supabase join 결과는 배열 또는 객체일 수 있음
+            const profile = Array.isArray(ct.profiles)
+              ? ct.profiles[0]
+              : ct.profiles;
+            return profile;
+          })
+          .filter(Boolean) || [];
       return NextResponse.json(teachersList);
     } else {
       const coursesList =
-        data?.map((ct: any) => ct.training_courses).filter(Boolean) || [];
+        data
+          ?.map((ct: any) => {
+            // Supabase join 결과는 배열 또는 객체일 수 있음
+            const course = Array.isArray(ct.training_courses)
+              ? ct.training_courses[0]
+              : ct.training_courses;
+            return course;
+          })
+          .filter(Boolean) || [];
       return NextResponse.json(coursesList);
     }
   } catch (error: any) {

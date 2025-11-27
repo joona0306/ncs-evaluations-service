@@ -47,7 +47,16 @@ export async function GET(request: Request) {
         );
       }
 
-      courses = data?.map((ct: any) => ct.training_courses).filter(Boolean) || [];
+      courses =
+        data
+          ?.map((ct: any) => {
+            // Supabase join 결과는 배열 또는 객체일 수 있음
+            const course = Array.isArray(ct.training_courses)
+              ? ct.training_courses[0]
+              : ct.training_courses;
+            return course;
+          })
+          .filter(Boolean) || [];
     } else {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

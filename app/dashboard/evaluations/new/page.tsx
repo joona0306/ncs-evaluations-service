@@ -30,7 +30,16 @@ export default async function NewEvaluationPage() {
       .from("course_teachers")
       .select("training_courses(*)")
       .eq("teacher_id", profile.id);
-    courses = data?.map((ct: any) => ct.training_courses).filter(Boolean) || [];
+    courses =
+      data
+        ?.map((ct: any) => {
+          // Supabase join 결과는 배열 또는 객체일 수 있음
+          const course = Array.isArray(ct.training_courses)
+            ? ct.training_courses[0]
+            : ct.training_courses;
+          return course;
+        })
+        .filter(Boolean) || [];
   }
 
   return (

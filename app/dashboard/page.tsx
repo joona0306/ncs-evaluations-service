@@ -15,16 +15,17 @@ import dynamicImport from "next/dynamic";
 
 // 동적 렌더링 강제 (cookies 사용)
 // force-dynamic을 사용하면 revalidate는 무시됩니다
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // AchievementOverview를 동적 임포트로 지연 로딩 (코드 스플리팅)
 const AchievementOverviewLazy = dynamicImport(
-  () => import("@/components/admin/achievement-overview").then((mod) => ({ default: mod.AchievementOverview })),
+  () =>
+    import("@/components/admin/achievement-overview").then((mod) => ({
+      default: mod.AchievementOverview,
+    })),
   {
     loading: () => (
-      <div className="p-4 text-center text-muted-foreground">
-        로딩 중...
-      </div>
+      <div className="p-4 text-center text-muted-foreground">로딩 중...</div>
     ),
     ssr: false, // 클라이언트 사이드에서만 렌더링
   }
@@ -96,7 +97,15 @@ export default async function DashboardPage() {
       }
 
       if (data) {
-        courses = data.map((ct: any) => ct.training_courses).filter(Boolean);
+        courses = data
+          .map((ct: any) => {
+            // Supabase join 결과는 배열 또는 객체일 수 있음
+            const course = Array.isArray(ct.training_courses)
+              ? ct.training_courses[0]
+              : ct.training_courses;
+            return course;
+          })
+          .filter(Boolean);
       }
     } else if (profile.role === "student") {
       const { data, error } = await supabase
@@ -121,7 +130,15 @@ export default async function DashboardPage() {
       }
 
       if (data) {
-        courses = data.map((cs: any) => cs.training_courses).filter(Boolean);
+        courses = data
+          .map((cs: any) => {
+            // Supabase join 결과는 배열 또는 객체일 수 있음
+            const course = Array.isArray(cs.training_courses)
+              ? cs.training_courses[0]
+              : cs.training_courses;
+            return course;
+          })
+          .filter(Boolean);
       }
     }
   } catch (error) {
@@ -189,7 +206,9 @@ export default async function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>과제물 제출</CardTitle>
-                <CardDescription>평가일정에 따라 과제물을 제출합니다</CardDescription>
+                <CardDescription>
+                  평가일정에 따라 과제물을 제출합니다
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Link href="/dashboard/submissions">
