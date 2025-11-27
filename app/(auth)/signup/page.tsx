@@ -211,38 +211,10 @@ export default function SignupPage() {
       }
 
       if (authData.user) {
-        // 세션이 없는 경우 (이메일 확인 필요 또는 이미 존재하는 계정)
+        // 세션이 없는 경우 (이메일 확인 필요)
+        // signUp이 성공했다는 것은 새 계정이 생성되었다는 의미이므로
+        // 이메일 확인이 필요한 경우입니다
         if (!authData.session) {
-          // 사용자 정보를 가져와서 이메일 확인 상태 확인
-          const {
-            data: { user: currentUser },
-          } = await supabase.auth.getUser();
-
-          // 이미 이메일이 확인된 사용자인 경우 = 이미 존재하는 계정
-          if (currentUser?.email_confirmed_at) {
-            setError("이미 가입된 계정입니다. 로그인 페이지로 이동하세요.");
-            setLoading(false);
-            return;
-          }
-
-          // 추가 확인: profiles 테이블에서도 확인
-          const checkEmailResponse2 = await fetch("/api/auth/check-email", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email }),
-          });
-
-          const checkEmailResult2 = await checkEmailResponse2.json();
-
-          // 이미 존재하는 계정인 경우
-          if (checkEmailResult2.exists) {
-            setError("이미 가입된 계정입니다. 로그인 페이지로 이동하세요.");
-            setLoading(false);
-            return;
-          }
-
           // 새 계정이지만 이메일 확인이 필요한 경우
           // 이메일 확인 메시지 표시
           setShowEmailConfirmation(true);
@@ -259,38 +231,7 @@ export default function SignupPage() {
         if (sessionError) throw sessionError;
 
         if (!session) {
-          // 세션이 없는 경우, 이미 존재하는 계정인지 확인
-          // 사용자 정보를 가져와서 이메일 확인 상태 확인
-          const {
-            data: { user: currentUser },
-          } = await supabase.auth.getUser();
-
-          // 이미 이메일이 확인된 사용자인 경우 = 이미 존재하는 계정
-          if (currentUser?.email_confirmed_at) {
-            setError("이미 가입된 계정입니다. 로그인 페이지로 이동하세요.");
-            setLoading(false);
-            return;
-          }
-
-          // 추가 확인: profiles 테이블에서도 확인
-          const checkEmailResponse3 = await fetch("/api/auth/check-email", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email }),
-          });
-
-          const checkEmailResult3 = await checkEmailResponse3.json();
-
-          // 이미 존재하는 계정인 경우
-          if (checkEmailResult3.exists) {
-            setError("이미 가입된 계정입니다. 로그인 페이지로 이동하세요.");
-            setLoading(false);
-            return;
-          }
-
-          // 새 계정이지만 이메일 확인이 필요한 경우
+          // 세션이 없는 경우, 이메일 확인이 필요한 새 계정
           setShowEmailConfirmation(true);
           setLoading(false);
           return;
