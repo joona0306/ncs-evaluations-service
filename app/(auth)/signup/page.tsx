@@ -165,7 +165,9 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/verify-email`,
+          emailRedirectTo: `${
+            process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+          }/verify-email`,
           data: {
             full_name: fullName,
             phone,

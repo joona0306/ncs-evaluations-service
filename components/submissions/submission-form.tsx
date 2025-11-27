@@ -40,6 +40,7 @@ export function SubmissionForm({
     existingSubmission?.comments ?? ""
   );
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -181,6 +182,39 @@ export function SubmissionForm({
     }
   };
 
+  const handleDelete = async () => {
+    if (!existingSubmission?.id) {
+      return;
+    }
+
+    if (!confirm("과제물을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/submissions/${existingSubmission.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "과제물 삭제에 실패했습니다.");
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err: any) {
+      console.error("과제물 삭제 오류:", err);
+      setError(err.message || "과제물 삭제에 실패했습니다.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -294,16 +328,26 @@ export function SubmissionForm({
           <div className="flex gap-2">
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || deleting}
             >
               {loading ? "제출 중..." : existingSubmission ? "수정" : "제출"}
             </Button>
+            {existingSubmission && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={loading || deleting}
+              >
+                {deleting ? "삭제 중..." : "삭제"}
+              </Button>
+            )}
             {onCancel && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
-                disabled={loading}
+                disabled={loading || deleting}
               >
                 취소
               </Button>
