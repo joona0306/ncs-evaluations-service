@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getPaginationParams, createPaginatedResponse } from "@/lib/api/pagination";
+import { CreateSubmissionSchema } from "@/lib/validation/schemas";
+import { validateRequest } from "@/lib/validation/api-validator";
 
 export async function GET(request: Request) {
   try {

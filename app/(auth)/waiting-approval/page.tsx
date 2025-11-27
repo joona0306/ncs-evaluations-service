@@ -102,7 +102,7 @@ export default function WaitingApprovalPage() {
 
           <div className="p-4 bg-blue-50 text-blue-800 rounded-md">
             <p className="text-xs">
-              관리자가 계정을 승인하면 "새로고침" 버튼을 클릭하여 대시보드로 이동할 수 있습니다.
+              관리자가 계정을 승인하면 &quot;승인 상태 확인&quot; 버튼을 클릭하여 대시보드로 이동할 수 있습니다.
             </p>
           </div>
 

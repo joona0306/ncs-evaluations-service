@@ -103,6 +103,7 @@ export function EvaluationsList({
     if (initialCourses.length === 0 && Object.keys(initialCourseData).length === 0) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.id, profile.role]);
 
   const handleEvaluate = useCallback(
