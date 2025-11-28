@@ -7,7 +7,7 @@ export default async function Home() {
   const user = await getCurrentUser();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>NCS 훈련생 성적관리 시스템</CardTitle>

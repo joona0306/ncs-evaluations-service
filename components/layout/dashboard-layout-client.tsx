@@ -7,6 +7,7 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 import { useAuthStore } from "@/stores/auth-store";
 import { Profile } from "@/types/common";
 import { createClient } from "@/lib/supabase/client";
+import { Settings } from "lucide-react";
 
 interface DashboardLayoutClientProps {
   children: React.ReactNode;
@@ -30,7 +31,7 @@ function DashboardHeader() {
   };
 
   return (
-    <div className="border-b bg-white">
+    <div className="border-b bg-white dark:bg-gray-900">
       <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <Link href="/dashboard" className="text-xl sm:text-2xl font-bold text-primary">
           NCS 훈련생 성적관리 시스템
@@ -43,6 +44,12 @@ function DashboardHeader() {
               </span>
             </Link>
           )}
+          <Link href="/dashboard/settings" className="w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto">
+              <Settings className="h-4 w-4 mr-2" />
+              설정
+            </Button>
+          </Link>
           <form action="/api/auth/signout" method="post" className="w-full sm:w-auto">
             <Button type="submit" variant="outline" size="sm" className="w-full sm:w-auto">
               로그아웃
@@ -95,7 +102,7 @@ export function DashboardLayoutClient({
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         <DashboardHeader />
         <div>{children}</div>
       </div>

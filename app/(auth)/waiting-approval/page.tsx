@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Settings } from "lucide-react";
 
 export default function WaitingApprovalPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function WaitingApprovalPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
         <Card className="w-full max-w-md">
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">로딩 중...</p>
@@ -76,7 +77,15 @@ export default function WaitingApprovalPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+      <div className="absolute top-4 right-4">
+        <Link href="/dashboard/settings">
+          <Button variant="outline" size="sm">
+            <Settings className="h-4 w-4 mr-2" />
+            설정
+          </Button>
+        </Link>
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>관리자 승인 대기</CardTitle>
@@ -85,7 +94,7 @@ export default function WaitingApprovalPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md">
+          <div className="p-4 bg-yellow-50 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-400 rounded-md">
             <p className="text-sm font-medium mb-2">이메일 확인이 완료되었습니다.</p>
             <p className="text-sm">
               관리자가 계정을 승인하면 대시보드에 접근할 수 있습니다.
@@ -93,14 +102,14 @@ export default function WaitingApprovalPage() {
           </div>
 
           {profile && (
-            <div className="p-4 bg-gray-50 rounded-md">
+            <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-md">
               <p className="text-sm text-muted-foreground mb-1">계정 정보</p>
               <p className="text-sm font-medium">{profile.full_name || profile.email}</p>
               <p className="text-xs text-muted-foreground">{profile.email}</p>
             </div>
           )}
 
-          <div className="p-4 bg-blue-50 text-blue-800 rounded-md">
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400 rounded-md">
             <p className="text-xs">
               관리자가 계정을 승인하면 &quot;승인 상태 확인&quot; 버튼을 클릭하여 대시보드로 이동할 수 있습니다.
             </p>
