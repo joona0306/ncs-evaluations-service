@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Settings } from "lucide-react";
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -79,7 +80,15 @@ function VerifyEmailContent() {
   }, [searchParams, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+      <div className="absolute top-4 right-4">
+        <Link href="/dashboard/settings">
+          <Button variant="outline" size="sm">
+            <Settings className="h-4 w-4 mr-2" />
+            설정
+          </Button>
+        </Link>
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>이메일 확인</CardTitle>
@@ -93,10 +102,10 @@ function VerifyEmailContent() {
           <div
             className={`p-4 rounded-md ${
               status === "success"
-                ? "bg-green-50 text-green-800"
+                ? "bg-green-50 dark:bg-green-950/50 text-green-800 dark:text-green-400"
                 : status === "error"
-                ? "bg-red-50 text-red-800"
-                : "bg-blue-50 text-blue-800"
+                ? "bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-400"
+                : "bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400"
             }`}
           >
             <p className="text-sm">{message}</p>
@@ -171,7 +180,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
           <Card className="w-full max-w-md">
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">로딩 중...</p>
