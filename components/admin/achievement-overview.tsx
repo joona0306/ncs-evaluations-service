@@ -101,11 +101,11 @@ export function AchievementOverview() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return "text-green-600 font-bold";
-    if (score >= 80) return "text-blue-600 font-semibold";
-    if (score >= 70) return "text-yellow-600";
-    if (score >= 60) return "text-orange-600";
-    return "text-red-600";
+    if (score >= 90) return "text-green-600 dark:text-green-400 font-bold";
+    if (score >= 80) return "text-blue-600 dark:text-blue-400 font-semibold";
+    if (score >= 70) return "text-yellow-600 dark:text-yellow-500";
+    if (score >= 60) return "text-orange-600 dark:text-orange-500";
+    return "text-red-600 dark:text-red-400";
   };
 
   const getScoreGrade = (score: number) => {
@@ -150,13 +150,13 @@ export function AchievementOverview() {
           ) : achievement ? (
             <div className="space-y-4">
               {/* 과정 평균 */}
-              <div className="p-4 border rounded-lg bg-blue-50">
+              <div className="p-4 border rounded-lg bg-blue-50 dark:bg-gray-800/50">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">
                       과정 평균 점수
                     </p>
-                    <p className="text-lg font-semibold">
+                    <p className="text-lg font-semibold text-foreground">
                       {achievement.course_name}
                     </p>
                   </div>
@@ -183,7 +183,7 @@ export function AchievementOverview() {
                     {achievement.students.map((student, index) => (
                       <div
                         key={student.student_id}
-                        className="flex justify-between items-center p-3 border rounded hover:bg-gray-50"
+                        className="flex justify-between items-center p-3 border rounded hover:bg-gray-50 dark:hover:bg-gray-800/50 dark:bg-gray-900/30"
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-sm text-muted-foreground w-6">
