@@ -245,7 +245,7 @@ export default function SignEvaluationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <p className="text-muted-foreground">로딩 중...</p>
       </div>
     );
@@ -253,7 +253,7 @@ export default function SignEvaluationPage() {
 
   if (!evaluation) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <Card>
           <CardContent className="py-12 text-center space-y-4">
             <p className="text-muted-foreground">
@@ -314,7 +314,7 @@ export default function SignEvaluationPage() {
                         alt="서명"
                         width={400}
                         height={128}
-                        className="max-w-full h-auto max-h-32 mx-auto border rounded bg-white p-2"
+                        className="max-w-full h-auto max-h-32 mx-auto border rounded bg-white dark:bg-gray-900 p-2"
                       />
                       <div className="flex gap-2 justify-center">
                         <Button
@@ -341,8 +341,8 @@ export default function SignEvaluationPage() {
             </div>
           ) : (
             <>
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/50 rounded-lg">
+                <p className="text-sm text-blue-800 dark:text-blue-400">
                   평가 내용을 확인하신 후 서명해주세요.
                 </p>
               </div>
@@ -385,7 +385,7 @@ export default function SignEvaluationPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs px-2 py-1 bg-gray-100 rounded">
+                          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
                             {sig.signature_type === "canvas"
                               ? "손글씨"
                               : "이미지"}

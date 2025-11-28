@@ -245,12 +245,12 @@ export function EvaluationSchedulesManager({
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      scheduled: "bg-blue-100 text-blue-800",
-      in_progress: "bg-green-100 text-green-800",
-      completed: "bg-gray-100 text-gray-800",
-      cancelled: "bg-red-100 text-red-800",
+      scheduled: "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400",
+      in_progress: "bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-400",
+      completed: "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200",
+      cancelled: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-400",
     };
-    return colors[status] || "bg-gray-100 text-gray-800";
+    return colors[status] || "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200";
   };
 
   if (!courseId) {

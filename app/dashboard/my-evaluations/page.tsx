@@ -53,9 +53,9 @@ export default async function MyEvaluationsPage() {
                     </div>
                     <div className="flex gap-2">
                       <span className={`px-2 py-1 text-xs rounded ${
-                        evaluation.status === "confirmed" ? "bg-green-100 text-green-800" :
-                        evaluation.status === "submitted" ? "bg-blue-100 text-blue-800" :
-                        "bg-gray-100 text-gray-800"
+                        evaluation.status === "confirmed" ? "bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-400" :
+                        evaluation.status === "submitted" ? "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400" :
+                        "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                       }`}>
                         {evaluation.status === "confirmed" ? "확정" :
                          evaluation.status === "submitted" ? "제출" : "임시저장"}

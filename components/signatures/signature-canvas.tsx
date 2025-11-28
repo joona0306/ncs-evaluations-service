@@ -31,7 +31,7 @@ export function SignatureCanvasComponent({ onSave, onCancel }: SignatureCanvasPr
 
   return (
     <div className="space-y-4">
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
+      <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900">
         <SignatureCanvas
           ref={sigCanvasRef}
           canvasProps={{

@@ -78,7 +78,7 @@ export function CompetencyElementsList({
           {elements.map((element) => (
             <div
               key={element.id}
-              className="border rounded bg-gray-50"
+              className="border rounded bg-gray-50 dark:bg-gray-900"
             >
               <div className="flex justify-between items-start p-3">
                 <div className="flex-1">
@@ -113,7 +113,7 @@ export function CompetencyElementsList({
                   </div>
                 )}
               </div>
-              <div className="p-3 border-t bg-white">
+              <div className="p-3 border-t bg-white dark:bg-gray-900">
                 <PerformanceCriteriaList competencyElementId={element.id} />
               </div>
             </div>

@@ -334,14 +334,14 @@ export default function SignupPage() {
   // 이메일 확인 메시지가 표시되는 경우
   if (showEmailConfirmation) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>이메일 확인 필요</CardTitle>
             <CardDescription>회원가입이 완료되었습니다</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-blue-50 text-blue-800 rounded-md">
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400 rounded-md">
               <p className="text-sm font-medium mb-2">
                 이메일 확인 링크를 발송했습니다.
               </p>
@@ -350,7 +350,7 @@ export default function SignupPage() {
                 클릭해주세요.
               </p>
             </div>
-            <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-400 rounded-md">
               <p className="text-sm">
                 이메일 확인 후 관리자가 계정을 승인하면 대시보드에 접근할 수
                 있습니다.

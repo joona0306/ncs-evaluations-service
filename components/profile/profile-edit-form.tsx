@@ -85,12 +85,12 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">
+            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-md">
               {error}
             </div>
           )}
           {success && (
-            <div className="p-3 text-sm text-green-600 bg-green-50 rounded-md">
+            <div className="p-3 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/50 rounded-md">
               프로필이 성공적으로 수정되었습니다.
             </div>
           )}
@@ -102,7 +102,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
               type="email"
               value={profile.email}
               disabled
-              className="bg-gray-50"
+              className="bg-gray-50 dark:bg-gray-900"
             />
             <p className="text-xs text-muted-foreground">
               이메일은 변경할 수 없습니다
@@ -122,7 +122,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
                   : "훈련생"
               }
               disabled
-              className="bg-gray-50"
+              className="bg-gray-50 dark:bg-gray-900"
             />
             <p className="text-xs text-muted-foreground">
               역할은 변경할 수 없습니다

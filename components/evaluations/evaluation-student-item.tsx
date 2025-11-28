@@ -45,10 +45,10 @@ function EvaluationStudentItemComponent({
   // 상태 배지 스타일 메모이제이션
   const statusBadgeStyle = useMemo(() => {
     const styles = {
-      confirmed: "bg-green-100 text-green-800",
-      submitted: "bg-blue-100 text-blue-800",
-      pending: "bg-yellow-100 text-yellow-800",
-      default: "bg-gray-100 text-gray-800",
+      confirmed: "bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-400",
+      submitted: "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400",
+      pending: "bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-400",
+      default: "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200",
     };
     return styles[evaluationStatus as keyof typeof styles] || styles.default;
   }, [evaluationStatus]);
@@ -90,7 +90,7 @@ function EvaluationStudentItemComponent({
               {statusText}
             </span>
             {latestSubmission && (
-              <span className="px-2 py-1 text-xs rounded bg-blue-50 text-blue-700">
+              <span className="px-2 py-1 text-xs rounded bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400">
                 과제물 제출됨
               </span>
             )}
@@ -103,8 +103,8 @@ function EvaluationStudentItemComponent({
           )}
 
           {latestSubmission && (
-            <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
-              <p className="text-blue-700 font-medium">
+            <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/50 rounded text-xs">
+              <p className="text-blue-700 dark:text-blue-400 font-medium">
                 최근 제출: {submittedDate}
               </p>
               {latestSubmission.evaluation_schedules && (

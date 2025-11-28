@@ -35,7 +35,7 @@ export function CriteriaScoringSection({
 
   if (elements.length === 0) {
     return (
-      <div className="p-4 text-sm text-yellow-600 bg-yellow-50 rounded-md">
+      <div className="p-4 text-sm text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/50 rounded-md">
         이 능력단위에는 아직 능력단위요소가 등록되지 않았습니다. 먼저
         능력단위요소를 등록해주세요.
       </div>
@@ -44,7 +44,7 @@ export function CriteriaScoringSection({
 
   if (performanceCriteria.length === 0) {
     return (
-      <div className="p-4 text-sm text-yellow-600 bg-yellow-50 rounded-md">
+      <div className="p-4 text-sm text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/50 rounded-md">
         능력단위요소에 수행준거가 등록되지 않았습니다. 먼저 수행준거를
         등록해주세요.
       </div>

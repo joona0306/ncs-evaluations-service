@@ -114,8 +114,8 @@ export function UsersList({ initialUsers }: UsersListProps) {
                           <span
                             className={`px-2 py-1 text-xs rounded ${
                               user.role === "teacher"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-green-100 text-green-800"
+                                ? "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400"
+                                : "bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-400"
                             }`}
                           >
                             {user.role === "teacher" ? "훈련교사" : "훈련생"}
@@ -125,7 +125,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
                               {user.phone}
                             </span>
                           )}
-                          <span className="px-2 py-1 text-xs rounded bg-orange-100 text-orange-800">
+                          <span className="px-2 py-1 text-xs rounded bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-400">
                             승인 대기
                           </span>
                         </div>
@@ -181,7 +181,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
                             {user.email}
                           </p>
                           <div className="flex gap-2 mt-2">
-                            <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
+                            <span className="px-2 py-1 text-xs rounded bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400">
                               훈련교사
                             </span>
                             {user.phone && (
@@ -253,7 +253,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
                             {user.email}
                           </p>
                           <div className="flex gap-2 mt-2">
-                            <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">
+                            <span className="px-2 py-1 text-xs rounded bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-400">
                               훈련생
                             </span>
                             {user.phone && (

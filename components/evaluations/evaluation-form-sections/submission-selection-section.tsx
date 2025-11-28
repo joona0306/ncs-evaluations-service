@@ -97,7 +97,7 @@ export function SubmissionSelectionSection({
     return (
       <div className="space-y-2">
         <Label htmlFor="submission">과제물 (선택사항)</Label>
-        <div className="p-4 border rounded-lg bg-gray-50 text-sm text-muted-foreground">
+        <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm text-muted-foreground">
           이 학생이 제출한 과제물이 없습니다.
         </div>
       </div>
@@ -133,7 +133,7 @@ export function SubmissionSelectionSection({
 
       {/* 선택된 과제물 미리보기 */}
       {selectedSubmission && (
-        <div className="mt-4 p-4 border rounded-lg bg-gray-50 space-y-4">
+        <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 space-y-4">
           <div className="flex justify-between items-start">
             <div>
               <h4 className="font-semibold text-lg">과제물 상세</h4>
@@ -141,7 +141,7 @@ export function SubmissionSelectionSection({
                 <span className="text-sm text-muted-foreground">
                   제출 유형:
                 </span>
-                <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
+                <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400">
                   {selectedSubmission.submission_type === "image"
                     ? "이미지 파일"
                     : "URL"}
@@ -279,7 +279,7 @@ export function SubmissionSelectionSection({
                   <p className="text-sm text-muted-foreground mb-2">
                     제출된 URL
                   </p>
-                  <div className="border rounded-lg p-3 bg-white">
+                  <div className="border rounded-lg p-3 bg-white dark:bg-gray-900">
                     <a
                       href={selectedSubmission.url}
                       target="_blank"
@@ -298,7 +298,7 @@ export function SubmissionSelectionSection({
               <p className="text-sm font-medium text-muted-foreground mb-2">
                 제출 코멘트
               </p>
-              <p className="text-sm whitespace-pre-wrap bg-white p-3 rounded border">
+              <p className="text-sm whitespace-pre-wrap bg-white dark:bg-gray-900 p-3 rounded border">
                 {selectedSubmission.comments}
               </p>
             </div>

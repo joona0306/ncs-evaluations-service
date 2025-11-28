@@ -29,8 +29,8 @@ export default function Error({
             훈련과정 수정 페이지를 불러오는 중 오류가 발생했습니다.
           </p>
           {error.message && (
-            <div className="p-3 bg-red-50 rounded-md">
-              <p className="text-sm text-red-800 font-mono">{error.message}</p>
+            <div className="p-3 bg-red-50 dark:bg-red-950/50 rounded-md">
+              <p className="text-sm text-red-800 dark:text-red-400 font-mono">{error.message}</p>
             </div>
           )}
           <div className="flex gap-2">

@@ -200,10 +200,10 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
               <span
                 className={`inline-block px-2 py-1 text-xs rounded ${
                   evaluation.status === "confirmed"
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-400"
                     : evaluation.status === "submitted"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-gray-100 text-gray-800"
+                    ? "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                 }`}
               >
                 {evaluation.status === "confirmed"
@@ -241,7 +241,7 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-muted-foreground">제출 유형:</p>
-                  <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
+                  <span className="px-2 py-1 text-xs font-medium rounded bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-400">
                     {submission.submission_type === "image"
                       ? "이미지 파일"
                       : "URL"}
@@ -255,7 +255,7 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
                       </p>
                       {submissionImageUrl ? (
                         <div className="space-y-3">
-                          <div className="border rounded-lg p-4 bg-white shadow-sm">
+                          <div className="border rounded-lg p-4 bg-white dark:bg-gray-900 shadow-sm">
                             <Image
                               src={submissionImageUrl}
                               alt="과제물 이미지"
@@ -350,7 +350,7 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
                       <p className="text-sm text-muted-foreground mb-2">
                         제출된 URL
                       </p>
-                      <div className="border rounded-lg p-3 bg-gray-50">
+                      <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-900">
                         <a
                           href={submission.url}
                           target="_blank"
@@ -392,7 +392,7 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
                     <p className="text-sm font-medium text-muted-foreground mb-2">
                       제출 코멘트
                     </p>
-                    <p className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded border">
+                    <p className="text-sm whitespace-pre-wrap bg-gray-50 dark:bg-gray-900 p-3 rounded border">
                       {safeText(submission.comments)}
                     </p>
                   </div>
@@ -431,7 +431,7 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
                           ? "훈련생 서명"
                           : "서명"}
                       </p>
-                      <div className="border rounded p-2 bg-white">
+                      <div className="border rounded p-2 bg-white dark:bg-gray-900">
                         <Image
                           src={sig.signature_data}
                           alt={`${signerName} 서명`}
@@ -477,7 +477,7 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex justify-between items-center p-4 border rounded bg-blue-50">
+            <div className="flex justify-between items-center p-4 border rounded bg-blue-50 dark:bg-blue-950/50">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">원점수</p>
                 <p className="text-lg font-semibold">
@@ -555,11 +555,11 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
                                     className={`text-xs px-2 py-0.5 rounded ${
                                       cs.performance_criteria.difficulty ===
                                       "high"
-                                        ? "bg-red-100 text-red-800"
+                                        ? "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-400"
                                         : cs.performance_criteria.difficulty ===
                                           "medium"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : "bg-green-100 text-green-800"
+                                        ? "bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-400"
+                                        : "bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-400"
                                     }`}
                                   >
                                     {cs.performance_criteria.difficulty ===

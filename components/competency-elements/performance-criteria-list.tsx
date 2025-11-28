@@ -81,7 +81,7 @@ export function PerformanceCriteriaList({
           {criteria.map((criterion) => (
             <div
               key={criterion.id}
-              className="flex justify-between items-start p-2 border rounded bg-white"
+              className="flex justify-between items-start p-2 border rounded bg-white dark:bg-gray-900"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">

@@ -133,7 +133,7 @@ export function UserCourseAssignment({
           {assignedCourses.map((course) => (
             <div
               key={course.id}
-              className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded"
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 rounded"
             >
               <span>{course.name}</span>
               <button

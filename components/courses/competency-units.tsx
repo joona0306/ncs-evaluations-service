@@ -134,7 +134,7 @@ export function CompetencyUnits({ courseId }: CompetencyUnitsProps) {
       </CardHeader>
       <CardContent>
         {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md mb-4">
+          <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 rounded-md mb-4">
             {error}
           </div>
         )}
@@ -198,7 +198,7 @@ export function CompetencyUnits({ courseId }: CompetencyUnitsProps) {
                   </div>
                 </div>
                 {expandedUnit === unit.id && (
-                  <div className="p-4 border-t bg-gray-50">
+                  <div className="p-4 border-t bg-gray-50 dark:bg-gray-900">
                     {unit.description && (
                       <p className="text-sm mb-4 text-muted-foreground">
                         {unit.description}

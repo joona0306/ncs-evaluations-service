@@ -63,7 +63,7 @@ export function SignatureUpload({ onSave, onCancel }: SignatureUploadProps) {
       </div>
 
       {preview && (
-        <div className="border rounded-lg p-4 bg-white">
+        <div className="border rounded-lg p-4 bg-white dark:bg-gray-900">
           <Image
             src={preview}
             alt="서명 미리보기"
