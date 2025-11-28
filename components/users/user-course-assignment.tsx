@@ -138,7 +138,7 @@ export function UserCourseAssignment({
               <span>{course.name}</span>
               <button
                 onClick={() => handleRemove(course.id)}
-                className="hover:bg-blue-100 rounded p-0.5"
+                className="hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded p-0.5"
                 disabled={loading}
               >
                 <X className="h-3 w-3" />

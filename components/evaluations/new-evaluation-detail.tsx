@@ -542,7 +542,7 @@ export function NewEvaluationDetail({ evaluation }: NewEvaluationDetailProps) {
                       {elementCriteriaScores.map((cs) => (
                         <div
                           key={cs.id}
-                          className="border rounded-lg p-3 space-y-2 hover:bg-gray-50 transition-colors"
+                          className="border rounded-lg p-3 space-y-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">

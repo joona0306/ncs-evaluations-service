@@ -147,7 +147,7 @@ export function CompetencyUnits({ courseId }: CompetencyUnitsProps) {
             {units.map((unit) => (
               <div key={unit.id} className="border rounded">
                 <div
-                  className="flex items-center p-3 cursor-pointer hover:bg-gray-50"
+                  className="flex items-center p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
                   onClick={() =>
                     setExpandedUnit(expandedUnit === unit.id ? null : unit.id)
                   }
