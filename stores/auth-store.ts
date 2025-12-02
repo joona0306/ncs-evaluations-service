@@ -37,7 +37,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } = await supabase.auth.getUser();
 
       if (userError) {
-        console.error("Auth user fetch error:", userError);
+        // 민감한 정보를 제외하고 오류만 로깅
+        console.error("Auth user fetch error:", {
+          message: userError.message,
+          status: userError.status,
+        });
         set({
           user: null,
           profile: null,
@@ -65,7 +69,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           .single();
 
         if (profileError) {
-          console.error("Profile fetch error:", profileError);
+          // 민감한 정보를 제외하고 오류만 로깅
+          console.error("Profile fetch error:", {
+            message: profileError.message,
+            code: profileError.code,
+          });
         }
 
         set({
@@ -83,7 +91,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error("Auth initialization error:", error);
+      // 민감한 정보를 제외하고 오류만 로깅
+      const errorInfo = error instanceof Error 
+        ? { message: error.message, name: error.name }
+        : { error: String(error) };
+      console.error("Auth initialization error:", errorInfo);
       set({
         user: null,
         profile: null,
@@ -117,7 +129,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({ profile, isLoading: false });
     } catch (error) {
-      console.error("Profile refresh error:", error);
+      // 민감한 정보를 제외하고 오류만 로깅
+      const errorInfo = error instanceof Error 
+        ? { message: error.message, name: error.name }
+        : { error: String(error) };
+      console.error("Profile refresh error:", errorInfo);
       set({ isLoading: false });
     }
   },

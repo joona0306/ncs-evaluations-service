@@ -7,7 +7,14 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -32,14 +39,19 @@ export default function LoginPage() {
 
       if (data.user) {
         // 세션을 명시적으로 확인
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
         if (sessionError) throw sessionError;
-        
+
         if (session) {
           // 이메일 확인 상태 확인
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          
+          const {
+            data: { user: authUser },
+          } = await supabase.auth.getUser();
+
           if (!authUser?.email_confirmed_at) {
             // 이메일 확인이 안 된 경우
             window.location.href = "/verify-email";
@@ -67,7 +79,31 @@ export default function LoginPage() {
         }
       }
     } catch (err: any) {
-      setError(err.message || "로그인에 실패했습니다.");
+      // 사용자 친화적인 오류 메시지 제공
+      let errorMessage = "로그인에 실패했습니다.";
+
+      if (
+        err.status === 400 ||
+        err.message?.includes("Invalid login credentials") ||
+        err.message?.includes("invalid") ||
+        err.message?.includes("credentials")
+      ) {
+        errorMessage =
+          "이메일 또는 비밀번호가 올바르지 않습니다. 다시 확인해주세요.";
+      } else if (err.message) {
+        // 기타 오류는 원본 메시지를 사용하되, 영어 메시지는 한국어로 변환
+        const message = err.message.toLowerCase();
+        if (message.includes("network") || message.includes("fetch")) {
+          errorMessage =
+            "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.";
+        } else if (message.includes("timeout")) {
+          errorMessage = "요청 시간이 초과되었습니다. 다시 시도해주세요.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -126,4 +162,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

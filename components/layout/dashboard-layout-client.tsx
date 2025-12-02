@@ -89,7 +89,11 @@ export function DashboardLayoutClient({
             setUser(user);
           }
         } catch (error) {
-          console.error("Failed to load user:", error);
+          // 민감한 정보를 제외하고 오류만 로깅
+          const errorInfo = error instanceof Error 
+            ? { message: error.message, name: error.name }
+            : { error: String(error) };
+          console.error("Failed to load user:", errorInfo);
         }
       };
       

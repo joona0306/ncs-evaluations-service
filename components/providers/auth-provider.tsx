@@ -29,7 +29,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .single();
 
         if (error) {
-          console.error("Profile fetch error on sign in:", error);
+          // 민감한 정보를 제외하고 오류만 로깅
+          console.error("Profile fetch error on sign in:", {
+            message: error.message,
+            code: error.code,
+          });
         }
 
         if (profile) {
