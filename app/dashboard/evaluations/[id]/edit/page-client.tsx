@@ -26,10 +26,15 @@ export default function EditEvaluationPageClient() {
     setLoading(true);
     setError(null);
     try {
-      // 평가 데이터 로드 (수정 페이지는 항상 최신 데이터 필요)
-      const evalResponse = await fetch(`/api/evaluations/${params.id}`, {
-        next: { revalidate: 0 }, // 수정 페이지는 항상 최신 데이터 필요
-      });
+      // 평가 데이터와 훈련과정 목록을 병렬로 로드
+      const [evalResponse, coursesResponse] = await Promise.all([
+        fetch(`/api/evaluations/${params.id}`, {
+          next: { revalidate: 0 },
+        }),
+        fetch("/api/courses", {
+          next: { revalidate: 60 },
+        }),
+      ]);
 
       if (!evalResponse.ok) {
         const errorData = await evalResponse.json();
@@ -46,17 +51,15 @@ export default function EditEvaluationPageClient() {
         return;
       }
 
-      // 훈련과정 목록 로드
-      const coursesResponse = await fetch("/api/courses", {
-        next: { revalidate: 60 }, // 훈련과정 목록은 자주 변경되지 않음
-      });
-
       if (!coursesResponse.ok) {
-        throw new Error("훈련과정을 불러올 수 없습니다.");
+        console.warn(
+          "훈련과정 목록을 불러올 수 없습니다. 빈 배열로 설정합니다."
+        );
+        setCourses([]);
+      } else {
+        const coursesData = await coursesResponse.json();
+        setCourses(coursesData || []);
       }
-
-      const coursesData = await coursesResponse.json();
-      setCourses(coursesData || []);
     } catch (err: any) {
       console.error("데이터 로드 실패:", err);
       setError(err.message || "데이터를 불러오는 중 오류가 발생했습니다.");
@@ -117,8 +120,8 @@ export default function EditEvaluationPageClient() {
     return null;
   }
 
-  // courses와 evaluation이 모두 준비되었을 때만 폼 렌더링
-  if (!evaluation || courses.length === 0) {
+  // evaluation이 준비되었을 때만 폼 렌더링 (courses는 빈 배열이어도 폼이 작동할 수 있음)
+  if (!evaluation) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <BackButton href={`/dashboard/evaluations/${params.id}`} />
