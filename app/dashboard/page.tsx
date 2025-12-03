@@ -244,12 +244,25 @@ export default async function DashboardPage() {
               {courses.length > 0 ? (
                 <div className="space-y-2">
                   {courses.map((course: any) => (
-                    <div key={course.id} className="p-2 border rounded">
-                      <p className="font-medium">{course.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {course.code}
-                      </p>
-                    </div>
+                    <Link
+                      key={course.id}
+                      href={`/dashboard/my-courses/${course.id}`}
+                      className="block"
+                    >
+                      <div className="p-3 border rounded hover:bg-accent hover:border-primary transition-colors cursor-pointer">
+                        <p className="font-medium">{course.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {course.code}
+                        </p>
+                        {course.start_date && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(course.start_date).toLocaleDateString(
+                              "ko-KR"
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
                   ))}
                 </div>
               ) : (

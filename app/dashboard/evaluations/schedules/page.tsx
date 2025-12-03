@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { BackButton } from "@/components/ui/back-button";
+import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 import dynamic from "next/dynamic";
 import { CardSkeleton } from "@/components/ui/skeleton";
 
@@ -75,9 +76,10 @@ export default function EvaluationSchedulesPage() {
         <BackButton href="/dashboard/evaluations" />
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">평가일정 관리</h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             능력단위별 평가일정을 관리합니다
           </p>
+          <EvaluationTabs />
         </div>
         <CardSkeleton count={2} />
       </div>
@@ -89,9 +91,10 @@ export default function EvaluationSchedulesPage() {
       <BackButton href="/dashboard/evaluations" />
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2">평가일정 관리</h2>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mb-4">
           능력단위별 평가일정을 관리합니다
         </p>
+        <EvaluationTabs />
       </div>
 
       {courses.length === 0 ? (

@@ -555,7 +555,7 @@ export default function SignupPage() {
             {/* 동의 섹션 */}
             <div className="space-y-3 pt-4 border-t">
               <div className="space-y-3">
-                <div className="flex items-start space-x-2">
+                <div className="flex items-center space-x-2">
                   <Checkbox
                     id="agreeTerms"
                     checked={agreeTerms}
@@ -579,7 +579,7 @@ export default function SignupPage() {
                   </label>
                 </div>
 
-                <div className="flex items-start space-x-2">
+                <div className="flex items-center space-x-2">
                   <Checkbox
                     id="agreePrivacy"
                     checked={agreePrivacy}
@@ -602,7 +602,6 @@ export default function SignupPage() {
                     에 동의합니다.
                   </label>
                 </div>
-
               </div>
             </div>
           </CardContent>

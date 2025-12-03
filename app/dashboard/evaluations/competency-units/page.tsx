@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { BackButton } from "@/components/ui/back-button";
 import { CompetencyUnitsManager } from "@/components/evaluations/competency-units-manager";
+import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 
 export default async function CompetencyUnitsManagementPage() {
   const profile = await getCurrentUserProfile();
@@ -48,9 +49,10 @@ export default async function CompetencyUnitsManagementPage() {
       <BackButton href="/dashboard/evaluations" />
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2">능력단위 관리</h2>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mb-4">
           훈련과정별 능력단위와 능력단위요소를 관리합니다
         </p>
+        <EvaluationTabs />
       </div>
 
       <CompetencyUnitsManager courses={courses} />

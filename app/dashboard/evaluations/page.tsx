@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { EvaluationsList } from "@/components/evaluations/evaluations-list";
+import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 
 // 캐싱 전략: 30초마다 재검증 (평가 데이터는 자주 변경될 수 있음)
 export const revalidate = 30;
@@ -190,24 +189,12 @@ export default async function EvaluationsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <BackButton href="/dashboard" />
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold mb-2">평가 관리</h2>
-          <p className="text-muted-foreground">
-            훈련생 평가를 작성하고 관리합니다
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/evaluations/competency-units">
-            <Button variant="outline">능력단위 관리</Button>
-          </Link>
-          <Link href="/dashboard/evaluations/schedules">
-            <Button variant="outline">평가일정 관리</Button>
-          </Link>
-          <Link href="/dashboard/evaluations/new">
-            <Button>새 평가 작성</Button>
-          </Link>
-        </div>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-2">평가 관리</h2>
+        <p className="text-muted-foreground mb-4">
+          훈련생 평가를 작성하고 관리합니다
+        </p>
+        <EvaluationTabs />
       </div>
 
       <EvaluationsList

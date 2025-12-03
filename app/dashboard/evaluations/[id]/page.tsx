@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
+import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 import dynamic from "next/dynamic";
 import { EvaluationDeleteButton } from "@/components/evaluations/evaluation-delete-button";
 import { CardSkeleton } from "@/components/ui/skeleton";
@@ -105,29 +106,32 @@ export default async function EvaluationDetailPage({
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <BackButton href="/dashboard/evaluations" />
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold mb-2">평가 상세</h2>
-          <p className="text-muted-foreground">
-            {Array.isArray(evaluation.competency_units)
-              ? (evaluation.competency_units as any[])[0]?.name
-              : (evaluation.competency_units as any)?.name}{" "}
-            -{" "}
-            {Array.isArray(evaluation.student)
-              ? (evaluation.student as any[])[0]?.full_name ||
-                (evaluation.student as any[])[0]?.email
-              : (evaluation.student as any)?.full_name ||
-                (evaluation.student as any)?.email}
-          </p>
-        </div>
-        {canEdit && (
-          <div className="flex gap-2">
-            <Link href={`/dashboard/evaluations/${params.id}/edit`}>
-              <Button variant="outline">수정</Button>
-            </Link>
-            <EvaluationDeleteButton evaluationId={params.id} />
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">평가 상세</h2>
+            <p className="text-muted-foreground">
+              {Array.isArray(evaluation.competency_units)
+                ? (evaluation.competency_units as any[])[0]?.name
+                : (evaluation.competency_units as any)?.name}{" "}
+              -{" "}
+              {Array.isArray(evaluation.student)
+                ? (evaluation.student as any[])[0]?.full_name ||
+                  (evaluation.student as any[])[0]?.email
+                : (evaluation.student as any)?.full_name ||
+                  (evaluation.student as any)?.email}
+            </p>
           </div>
-        )}
+          {canEdit && (
+            <div className="flex gap-2">
+              <Link href={`/dashboard/evaluations/${params.id}/edit`}>
+                <Button variant="outline">수정</Button>
+              </Link>
+              <EvaluationDeleteButton evaluationId={params.id} />
+            </div>
+          )}
+        </div>
+        <EvaluationTabs />
       </div>
 
       <NewEvaluationDetail evaluation={evaluation} />

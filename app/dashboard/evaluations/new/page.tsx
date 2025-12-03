@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
 import { BackButton } from "@/components/ui/back-button";
 import { NewEvaluationForm } from "@/components/evaluations/new-evaluation-form";
+import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 
 // 캐싱 전략: 30초마다 재검증
 export const revalidate = 30;
@@ -45,7 +45,13 @@ export default async function NewEvaluationPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <BackButton href="/dashboard/evaluations" />
-      <h2 className="text-3xl font-bold mb-8">새 평가 작성</h2>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-2">새 평가 작성</h2>
+        <p className="text-muted-foreground mb-4">
+          새로운 평가를 작성합니다
+        </p>
+        <EvaluationTabs />
+      </div>
       <NewEvaluationForm courses={courses} teacherId={profile.id} />
     </div>
   );

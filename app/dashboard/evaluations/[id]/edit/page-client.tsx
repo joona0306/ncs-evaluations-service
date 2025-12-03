@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { BackButton } from "@/components/ui/back-button";
+import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 import { NewEvaluationForm } from "@/components/evaluations/new-evaluation-form";
 import { CardSkeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/stores/auth-store";
@@ -79,7 +80,13 @@ export default function EditEvaluationPageClient() {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <BackButton href={`/dashboard/evaluations/${params.id}`} />
-        <h2 className="text-3xl font-bold mb-8">평가 수정</h2>
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
+          <p className="text-muted-foreground mb-4">
+            평가 정보를 수정합니다
+          </p>
+          <EvaluationTabs />
+        </div>
         <CardSkeleton count={3} />
       </div>
     );
@@ -89,7 +96,13 @@ export default function EditEvaluationPageClient() {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <BackButton href={`/dashboard/evaluations/${params.id}`} />
-        <h2 className="text-3xl font-bold mb-8">평가 수정</h2>
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
+          <p className="text-muted-foreground mb-4">
+            평가 정보를 수정합니다
+          </p>
+          <EvaluationTabs />
+        </div>
         <p className="text-red-600">{error || "평가를 찾을 수 없습니다."}</p>
       </div>
     );
@@ -102,7 +115,13 @@ export default function EditEvaluationPageClient() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <BackButton href={`/dashboard/evaluations/${params.id}`} />
-      <h2 className="text-3xl font-bold mb-8">평가 수정</h2>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
+        <p className="text-muted-foreground mb-4">
+          평가 정보를 수정합니다
+        </p>
+        <EvaluationTabs />
+      </div>
       <NewEvaluationForm
         courses={courses}
         teacherId={profile.id}
