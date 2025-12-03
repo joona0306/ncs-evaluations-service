@@ -14,12 +14,21 @@ export default function EditEvaluationPageClient() {
   const { profile, isInitialized } = useAuthStore();
   const [evaluation, setEvaluation] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // 초기값을 false로 변경
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("useEffect 실행:", {
+      hasProfile: !!profile,
+      profileId: profile?.id,
+      loading,
+      hasEvaluation: !!evaluation,
+      paramsId: params.id,
+    });
+
     // profile이 없으면 대기 (isInitialized는 체크하지 않음)
     if (!profile) {
+      console.log("profile이 없어서 대기 중");
       // isInitialized가 true이고 profile이 없으면 로그인 페이지로 리다이렉트
       if (isInitialized) {
         router.push("/login");
@@ -29,12 +38,20 @@ export default function EditEvaluationPageClient() {
 
     // 권한 확인
     if (profile.role !== "admin" && profile.role !== "teacher") {
+      console.log("권한 없음, 리다이렉트");
       router.push("/dashboard/evaluations");
       return;
     }
 
-    // 이미 로드 중이거나 데이터가 있으면 스킵
-    if (loading || evaluation) {
+    // 이미 데이터가 있으면 스킵 (loading은 체크하지 않음 - 초기값이 true이므로)
+    if (evaluation) {
+      console.log("이미 evaluation 데이터가 있어서 스킵");
+      return;
+    }
+
+    // 이미 로드 중이면 스킵 (중복 호출 방지)
+    if (loading) {
+      console.log("이미 로드 중이어서 스킵");
       return;
     }
 
