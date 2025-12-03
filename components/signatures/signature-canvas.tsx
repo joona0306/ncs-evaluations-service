@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
 interface SignatureCanvasProps {
@@ -16,17 +15,6 @@ export function SignatureCanvasComponent({
 }: SignatureCanvasProps) {
   const sigCanvasRef = useRef<SignatureCanvas>(null);
   const [isEmpty, setIsEmpty] = useState(true);
-  const { theme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // hydration mismatch 방지
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // 다크모드 감지 (resolvedTheme 사용)
-  const isDarkMode = mounted && (resolvedTheme === "dark" || theme === "dark");
-  const penColor = isDarkMode ? "#ffffff" : "#000000"; // 다크모드: 흰색, 라이트모드: 검은색
 
   const handleClear = () => {
     sigCanvasRef.current?.clear();
@@ -52,8 +40,8 @@ export function SignatureCanvasComponent({
           canvasProps={{
             className: "w-full h-64",
           }}
-          penColor={penColor}
-          backgroundColor={isDarkMode ? "#111827" : "#ffffff"} // 다크모드: dark:bg-gray-900, 라이트모드: white
+          penColor="#000000" // 항상 검은색 펜 사용 (흰색 배경에서 잘 보임)
+          backgroundColor="#ffffff" // 항상 흰색 배경 사용 (표준 서명 형식)
           onBegin={handleBegin}
         />
       </div>

@@ -18,7 +18,10 @@ export default function EditEvaluationPageClient() {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    if (!profile) return;
+    if (!profile) {
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     setError(null);
@@ -81,7 +84,8 @@ export default function EditEvaluationPageClient() {
     loadData();
   }, [isInitialized, profile, router, loadData]);
 
-  if (loading) {
+  // 프로필 초기화 대기 중
+  if (!isInitialized || loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <BackButton href={`/dashboard/evaluations/${params.id}`} />
