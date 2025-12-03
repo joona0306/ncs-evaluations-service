@@ -58,16 +58,23 @@ export default function LoginPage() {
             return;
           }
 
-          // 프로필 확인 (관리자 승인 상태)
+          // 프로필 확인 (관리자 승인 상태 및 동의 상태)
           const { data: profile } = await supabase
             .from("profiles")
-            .select("approved")
+            .select("approved, agreed_terms_at, agreed_privacy_at")
             .eq("id", authUser.id)
             .maybeSingle();
 
           if (!profile?.approved) {
             // 관리자 승인이 안 된 경우
             window.location.href = "/waiting-approval";
+            return;
+          }
+
+          // 동의 확인 (이용약관 및 개인정보처리방침)
+          if (!profile?.agreed_terms_at || !profile?.agreed_privacy_at) {
+            // 동의가 안 된 경우 동의 페이지로 리다이렉트
+            window.location.href = "/consent?redirect=/dashboard";
             return;
           }
 
