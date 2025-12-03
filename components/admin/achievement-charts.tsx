@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   PieChart,
   Pie,
@@ -50,6 +51,13 @@ export function AchievementCharts({
   students,
   competencyUnitAverage,
 }: AchievementChartsProps) {
+  // 클라이언트 사이드에서만 렌더링 (SSR hydration 문제 방지)
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // 파이 차트 데이터
   const pieData = [
     {
@@ -142,6 +150,64 @@ export function AchievementCharts({
     return null;
   };
 
+  // 마운트 전에는 스켈레톤 표시
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        <div className="p-4 border rounded-lg bg-blue-50 dark:bg-gray-800/50">
+          <p className="text-sm text-muted-foreground mb-1">능력단위평균</p>
+          <p className="text-2xl font-bold text-foreground">
+            {competencyUnitAverage.toFixed(2)}점
+          </p>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-semibold mb-4">점수 분포</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+              <div className="text-sm space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">90점 이상:</span>
+                  <span className="font-medium">{scoreDistribution.over90}명</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">80점 이상:</span>
+                  <span className="font-medium">{scoreDistribution.over80}명</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">70점 이상:</span>
+                  <span className="font-medium">{scoreDistribution.over70}명</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">60점 이상:</span>
+                  <span className="font-medium">{scoreDistribution.over60}명</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">60점 미만:</span>
+                  <span className="font-medium">{scoreDistribution.under60}명</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t mt-2">
+                  <span className="font-semibold">응시 인원:</span>
+                  <span className="font-semibold">{scoreDistribution.total}명</span>
+                </div>
+              </div>
+              <div className="h-48 w-full min-h-[192px] flex items-center justify-center">
+                <div className="text-muted-foreground">로딩 중...</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4">
+              훈련생별 점수 분포 ({students.length}명)
+            </h4>
+            <div className="h-[400px] w-full min-h-[400px] flex items-center justify-center">
+              <div className="text-muted-foreground">로딩 중...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* 능력단위평균 */}
@@ -195,9 +261,9 @@ export function AchievementCharts({
                 </span>
               </div>
             </div>
-            <div className="h-48 flex items-center justify-center">
+            <div className="h-48 w-full min-h-[192px] flex items-center justify-center">
               {pieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={192} minWidth={0}>
                   <PieChart>
                     <Pie
                       data={pieData}
@@ -233,8 +299,8 @@ export function AchievementCharts({
             훈련생별 점수 분포 ({students.length}명)
           </h4>
           {barData.length > 0 ? (
-            <div className="h-[400px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[400px] w-full min-h-[400px]">
+              <ResponsiveContainer width="100%" height="100%" minHeight={400} minWidth={0}>
                 <BarChart
                   data={barData}
                   layout="vertical"
