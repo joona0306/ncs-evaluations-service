@@ -48,11 +48,15 @@ export default async function CompetencyUnitsManagementPage() {
     <div className="container mx-auto px-4 py-8">
       <BackButton href="/dashboard/evaluations" />
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">능력단위 관리</h2>
-        <p className="text-muted-foreground mb-4">
-          훈련과정별 능력단위와 능력단위요소를 관리합니다
-        </p>
-        <EvaluationTabs />
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">능력단위 관리</h2>
+            <p className="text-muted-foreground">
+              훈련과정별 능력단위와 능력단위요소를 관리합니다
+            </p>
+          </div>
+          <EvaluationTabs alignRight />
+        </div>
       </div>
 
       <CompetencyUnitsManager courses={courses} />

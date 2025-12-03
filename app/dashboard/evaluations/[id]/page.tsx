@@ -102,10 +102,13 @@ export default async function EvaluationDetailPage({
   const canEdit =
     profile.role === "admin" ||
     (profile.role === "teacher" && evaluation.teacher_id === profile.id);
+  
+  // 훈련생인지 확인
+  const isStudent = profile.role === "student";
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <BackButton href="/dashboard/evaluations" />
+      <BackButton href={isStudent ? "/dashboard/my-evaluations" : "/dashboard/evaluations"} />
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -131,7 +134,8 @@ export default async function EvaluationDetailPage({
             </div>
           )}
         </div>
-        <EvaluationTabs />
+        {/* 훈련생이 아닐 때만 탭 메뉴 표시 */}
+        {!isStudent && <EvaluationTabs alignRight />}
       </div>
 
       <NewEvaluationDetail evaluation={evaluation} />

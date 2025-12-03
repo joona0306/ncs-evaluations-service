@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { NewEvaluationDetail } from "@/components/evaluations/new-evaluation-detail";
 import { EvaluationDeleteButton } from "@/components/evaluations/evaluation-delete-button";
+import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 import { CardSkeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -49,10 +50,13 @@ export default function EvaluationDetailPageClient() {
     loadEvaluation();
   }, [profile, router, loadEvaluation]);
 
+  // 훈련생인지 확인 (로딩 중에도 확인 가능)
+  const isStudent = profile?.role === "student";
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <BackButton href="/dashboard/evaluations" />
+        <BackButton href={isStudent ? "/dashboard/my-evaluations" : "/dashboard/evaluations"} />
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h2 className="text-3xl font-bold mb-2">평가 상세</h2>
@@ -67,7 +71,7 @@ export default function EvaluationDetailPageClient() {
   if (error || !evaluation) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <BackButton href="/dashboard/evaluations" />
+        <BackButton href={isStudent ? "/dashboard/my-evaluations" : "/dashboard/evaluations"} />
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">평가 상세</h2>
           <p className="text-red-600">{error || "평가를 찾을 수 없습니다."}</p>
@@ -83,23 +87,27 @@ export default function EvaluationDetailPageClient() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <BackButton href="/dashboard/evaluations" />
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold mb-2">평가 상세</h2>
-          <p className="text-muted-foreground">
-            {evaluation.competency_units?.name} -{" "}
-            {evaluation.student?.full_name || evaluation.student?.email}
-          </p>
-        </div>
-        {canEdit && (
-          <div className="flex gap-2">
-            <Link href={`/dashboard/evaluations/${params.id}/edit`}>
-              <Button variant="outline">수정</Button>
-            </Link>
-            <EvaluationDeleteButton evaluationId={params.id as string} />
+      <BackButton href={isStudent ? "/dashboard/my-evaluations" : "/dashboard/evaluations"} />
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">평가 상세</h2>
+            <p className="text-muted-foreground">
+              {evaluation.competency_units?.name} -{" "}
+              {evaluation.student?.full_name || evaluation.student?.email}
+            </p>
           </div>
-        )}
+          {canEdit && (
+            <div className="flex gap-2">
+              <Link href={`/dashboard/evaluations/${params.id}/edit`}>
+                <Button variant="outline">수정</Button>
+              </Link>
+              <EvaluationDeleteButton evaluationId={params.id as string} />
+            </div>
+          )}
+        </div>
+        {/* 훈련생이 아닐 때만 탭 메뉴 표시 */}
+        {!isStudent && <EvaluationTabs alignRight />}
       </div>
 
       <NewEvaluationDetail evaluation={evaluation} />

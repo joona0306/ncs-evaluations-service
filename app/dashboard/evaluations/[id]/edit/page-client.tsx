@@ -144,9 +144,13 @@ export default function EditEvaluationPageClient() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <BackButton href={`/dashboard/evaluations/${params.id}`} />
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
-        <p className="text-muted-foreground mb-4">평가 정보를 수정합니다</p>
-        <EvaluationTabs />
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
+            <p className="text-muted-foreground">평가 정보를 수정합니다</p>
+          </div>
+          <EvaluationTabs alignRight />
+        </div>
       </div>
       <NewEvaluationForm
         courses={courses}

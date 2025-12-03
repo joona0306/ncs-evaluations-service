@@ -190,11 +190,15 @@ export default async function EvaluationsPage() {
     <div className="container mx-auto px-4 py-8">
       <BackButton href="/dashboard" />
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">평가 관리</h2>
-        <p className="text-muted-foreground mb-4">
-          훈련생 평가를 작성하고 관리합니다
-        </p>
-        <EvaluationTabs />
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">평가 관리</h2>
+            <p className="text-muted-foreground">
+              훈련생 평가를 작성하고 관리합니다
+            </p>
+          </div>
+          <EvaluationTabs alignRight />
+        </div>
       </div>
 
       <EvaluationsList

@@ -5,7 +5,11 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function EvaluationTabs() {
+interface EvaluationTabsProps {
+  alignRight?: boolean;
+}
+
+export function EvaluationTabs({ alignRight = false }: EvaluationTabsProps) {
   const pathname = usePathname();
 
   const tabs = [
@@ -32,7 +36,7 @@ export function EvaluationTabs() {
   ];
 
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className={cn("flex gap-2 flex-wrap", alignRight && "justify-end")}>
       {tabs.map((tab) => (
         <Link key={tab.href} href={tab.href}>
           <Button

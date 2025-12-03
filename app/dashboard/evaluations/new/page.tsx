@@ -46,11 +46,15 @@ export default async function NewEvaluationPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <BackButton href="/dashboard/evaluations" />
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">새 평가 작성</h2>
-        <p className="text-muted-foreground mb-4">
-          새로운 평가를 작성합니다
-        </p>
-        <EvaluationTabs />
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">새 평가 작성</h2>
+            <p className="text-muted-foreground">
+              새로운 평가를 작성합니다
+            </p>
+          </div>
+          <EvaluationTabs alignRight />
+        </div>
       </div>
       <NewEvaluationForm courses={courses} teacherId={profile.id} />
     </div>
