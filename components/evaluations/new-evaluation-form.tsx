@@ -77,6 +77,8 @@ export function NewEvaluationForm({
   );
   // 초기 로드 시 URL 파라미터의 submission_id를 저장 (한 번만 사용)
   const initialSubmissionIdRef = useRef<string | null>(null);
+  // URL 파라미터로 설정된 selectedUnit을 추적 (자동 선택 방지)
+  const initialUnitIdRef = useRef<string | null>(null);
 
   // URL 파라미터에서 초기값 설정 (렌더링 후)
   useEffect(() => {
@@ -86,6 +88,7 @@ export function NewEvaluationForm({
       const submissionId = searchParams.get("submission_id");
 
       if (unitId) {
+        initialUnitIdRef.current = unitId;
         setSelectedUnit(unitId);
       }
       if (studentId) {
@@ -331,7 +334,21 @@ export function NewEvaluationForm({
       if (Array.isArray(data)) {
         setCompetencyUnits(data);
         if (!evaluation && data.length > 0) {
-          setSelectedUnit(data[0].id);
+          // URL 파라미터로 이미 selectedUnit이 설정된 경우 자동 선택하지 않음
+          if (!initialUnitIdRef.current) {
+            setSelectedUnit(data[0].id);
+          } else {
+            // URL 파라미터의 unitId가 현재 로드된 능력단위 목록에 있는지 확인
+            const unitExists = data.some(
+              (u: any) => u.id === initialUnitIdRef.current
+            );
+            if (!unitExists) {
+              // URL 파라미터의 unitId가 목록에 없으면 첫 번째 항목 선택
+              setSelectedUnit(data[0].id);
+              initialUnitIdRef.current = null; // 초기값 사용 완료
+            }
+            // unitExists가 true면 이미 URL 파라미터로 설정된 selectedUnit 유지
+          }
         } else if (data.length === 0) {
           setSelectedUnit("");
           setError(
