@@ -25,193 +25,205 @@ export async function GET(request: Request) {
 
     const supabase = await createClient();
 
-    // 과정 정보 조회
-    const { data: course, error: courseError } = await supabase
-      .from("training_courses")
-      .select("id, name, code")
-      .eq("id", courseId)
-      .single();
+    // 1. 모든 필요한 데이터를 병렬로 한 번에 조회 (N+1 쿼리 문제 해결)
+    const [courseResult, studentsResult, unitsResult] = await Promise.all([
+      // 과정 정보
+      supabase
+        .from("training_courses")
+        .select("id, name, code")
+        .eq("id", courseId)
+        .single(),
 
-    if (courseError || !course) {
+      // 학생 목록
+      supabase
+        .from("course_students")
+        .select(
+          `
+          student_id,
+          profiles!course_students_student_id_fkey (
+            id,
+            full_name,
+            email
+          )
+        `
+        )
+        .eq("course_id", courseId)
+        .eq("status", "active"),
+
+      // 능력단위 목록 (한 번만 조회)
+      supabase
+        .from("competency_units")
+        .select("id, name, code")
+        .eq("course_id", courseId)
+        .order("code", { ascending: true }),
+    ]);
+
+    if (courseResult.error || !courseResult.data) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
-    // 해당 과정의 모든 학생 조회
-    const { data: courseStudents, error: studentsError } = await supabase
-      .from("course_students")
-      .select(
-        `
-        student_id,
-        profiles!course_students_student_id_fkey (
-          id,
-          full_name,
-          email
-        )
-      `
-      )
-      .eq("course_id", courseId)
-      .eq("status", "active");
+    const course = courseResult.data;
+    const courseStudents = studentsResult.data || [];
+    const competencyUnits = unitsResult.data || [];
 
-    if (studentsError) {
-      console.error("학생 조회 오류:", studentsError);
-      return NextResponse.json(
-        { error: studentsError.message },
-        { status: 500 }
-      );
-    }
-
-    if (!courseStudents || courseStudents.length === 0) {
+    if (courseStudents.length === 0) {
       return NextResponse.json({
         course_id: courseId,
         course_name: course.name,
         course_code: course.code,
         students: [],
         course_average: 0,
+        competency_units: [],
+        competency_unit_average: 0,
+        score_distribution: {
+          over90: 0,
+          over80: 0,
+          over70: 0,
+          over60: 0,
+          under60: 0,
+          total: 0,
+        },
       });
     }
 
-    // 각 학생의 평가 점수 조회
-    const studentAchievements: any[] = [];
-    let totalScore = 0;
-    let totalEvaluations = 0;
+    // 2. 모든 평가를 한 번에 조회 (배치 쿼리)
+    const unitIds = competencyUnits.map((u) => u.id);
+    const studentIds = courseStudents
+      .map((cs) => {
+        const student = Array.isArray(cs.profiles)
+          ? cs.profiles[0]
+          : cs.profiles;
+        return student?.id;
+      })
+      .filter(Boolean) as string[];
 
-    for (const cs of courseStudents) {
-      const profile = Array.isArray(cs.profiles) ? cs.profiles[0] : cs.profiles;
-
-      if (!profile) continue;
-
-      // 해당 과정의 능력단위 ID 목록 조회
-      const { data: competencyUnits } = await supabase
-        .from("competency_units")
-        .select("id")
-        .eq("course_id", courseId);
-
-      if (!competencyUnits || competencyUnits.length === 0) {
-        studentAchievements.push({
-          student_id: cs.student_id,
-          student_name: profile.full_name || profile.email,
-          student_email: profile.email,
-          evaluations_count: 0,
+    // 능력단위나 학생이 없으면 빈 결과 반환
+    if (unitIds.length === 0 || studentIds.length === 0) {
+      return NextResponse.json({
+        course_id: courseId,
+        course_name: course.name,
+        course_code: course.code,
+        students: courseStudents.map((cs) => {
+          const student = Array.isArray(cs.profiles)
+            ? cs.profiles[0]
+            : cs.profiles;
+          return {
+            student_id: cs.student_id,
+            student_name: student?.full_name || student?.email || "",
+            student_email: student?.email || "",
+            evaluations_count: 0,
+            average_score: 0,
+          };
+        }),
+        course_average: 0,
+        competency_units: competencyUnits.map((u) => ({
+          unit_id: u.id,
+          unit_name: u.name,
+          unit_code: u.code,
           average_score: 0,
-        });
-        continue;
+          evaluation_count: 0,
+        })),
+        competency_unit_average: 0,
+        score_distribution: {
+          over90: 0,
+          over80: 0,
+          over70: 0,
+          over60: 0,
+          under60: 0,
+          total: 0,
+        },
+      });
+    }
+
+    // 모든 평가를 한 번에 조회
+    const { data: allEvaluations } = await supabase
+      .from("evaluations")
+      .select("id, total_score, student_id, competency_unit_id")
+      .in("competency_unit_id", unitIds)
+      .in("student_id", studentIds)
+      .not("total_score", "is", null);
+
+    const evaluations = allEvaluations || [];
+
+    // 3. 메모리에서 데이터 그룹화 및 계산
+    // 학생별 평가 그룹화
+    const studentEvaluationsMap = new Map<string, number[]>();
+    evaluations.forEach((evaluation) => {
+      if (!studentEvaluationsMap.has(evaluation.student_id)) {
+        studentEvaluationsMap.set(evaluation.student_id, []);
       }
+      studentEvaluationsMap
+        .get(evaluation.student_id)!
+        .push(evaluation.total_score);
+    });
 
-      const unitIds = competencyUnits.map((cu) => cu.id);
-
-      // 해당 학생의 평가 점수 조회
-      const { data: evaluations } = await supabase
-        .from("evaluations")
-        .select("id, total_score")
-        .eq("student_id", cs.student_id)
-        .in("competency_unit_id", unitIds)
-        .not("total_score", "is", null);
-
-      const scores =
-        evaluations?.map((e) => e.total_score).filter((s) => s !== null) || [];
+    // 학생별 성취도 계산
+    const studentAchievements = courseStudents.map((cs) => {
+      const student = Array.isArray(cs.profiles) ? cs.profiles[0] : cs.profiles;
+      const scores = studentEvaluationsMap.get(cs.student_id) || [];
       const avgScore =
         scores.length > 0
           ? scores.reduce((a, b) => a + b, 0) / scores.length
           : 0;
 
-      studentAchievements.push({
+      return {
         student_id: cs.student_id,
-        student_name: profile.full_name || profile.email,
-        student_email: profile.email,
+        student_name: student?.full_name || student?.email || "",
+        student_email: student?.email || "",
         evaluations_count: scores.length,
         average_score: Math.round(avgScore * 100) / 100,
-      });
+      };
+    });
 
-      if (scores.length > 0) {
-        totalScore += avgScore;
-        totalEvaluations++;
-      }
-    }
-
+    // 과정 평균 계산
+    const allStudentScores = Array.from(studentEvaluationsMap.values()).flat();
     const courseAverage =
-      totalEvaluations > 0 ? totalScore / totalEvaluations : 0;
+      allStudentScores.length > 0
+        ? allStudentScores.reduce((a, b) => a + b, 0) / allStudentScores.length
+        : 0;
 
-    // 능력단위별 평가 데이터 조회
-    const { data: competencyUnits } = await supabase
-      .from("competency_units")
-      .select("id, name, code")
-      .eq("course_id", courseId)
-      .order("code", { ascending: true });
-
-    const unitData: any[] = [];
-    let totalUnitScore = 0;
-    let totalUnitEvaluations = 0;
-
-    if (competencyUnits && competencyUnits.length > 0) {
-      for (const unit of competencyUnits) {
-        // 해당 능력단위의 모든 평가 조회
-        const { data: unitEvaluations } = await supabase
-          .from("evaluations")
-          .select("total_score")
-          .eq("competency_unit_id", unit.id)
-          .not("total_score", "is", null);
-
-        const unitScores =
-          unitEvaluations
-            ?.map((e) => e.total_score)
-            .filter((s) => s !== null) || [];
-        const unitAverage =
-          unitScores.length > 0
-            ? unitScores.reduce((a, b) => a + b, 0) / unitScores.length
-            : 0;
-
-        unitData.push({
-          unit_id: unit.id,
-          unit_name: unit.name,
-          unit_code: unit.code,
-          average_score: Math.round(unitAverage * 100) / 100,
-          evaluation_count: unitScores.length,
-        });
-
-        if (unitScores.length > 0) {
-          totalUnitScore += unitAverage;
-          totalUnitEvaluations++;
-        }
+    // 능력단위별 평균 계산
+    const unitEvaluationsMap = new Map<string, number[]>();
+    evaluations.forEach((evaluation) => {
+      const key = evaluation.competency_unit_id;
+      if (!unitEvaluationsMap.has(key)) {
+        unitEvaluationsMap.set(key, []);
       }
-    }
+      unitEvaluationsMap.get(key)!.push(evaluation.total_score);
+    });
+
+    const unitData = competencyUnits.map((unit) => {
+      const scores = unitEvaluationsMap.get(unit.id) || [];
+      const avgScore =
+        scores.length > 0
+          ? scores.reduce((a, b) => a + b, 0) / scores.length
+          : 0;
+
+      return {
+        unit_id: unit.id,
+        unit_name: unit.name,
+        unit_code: unit.code,
+        average_score: Math.round(avgScore * 100) / 100,
+        evaluation_count: scores.length,
+      };
+    });
 
     const competencyUnitAverage =
-      totalUnitEvaluations > 0 ? totalUnitScore / totalUnitEvaluations : 0;
+      unitData.length > 0 && unitData.some((u) => u.evaluation_count > 0)
+        ? unitData
+            .filter((u) => u.evaluation_count > 0)
+            .reduce((sum, u) => sum + u.average_score, 0) /
+          unitData.filter((u) => u.evaluation_count > 0).length
+        : 0;
 
-    // 점수 분포 계산 (모든 평가 점수 기준)
-    const allScores: number[] = [];
-    for (const cs of courseStudents) {
-      const profile = Array.isArray(cs.profiles) ? cs.profiles[0] : cs.profiles;
-      if (!profile) continue;
-
-      const { data: competencyUnits } = await supabase
-        .from("competency_units")
-        .select("id")
-        .eq("course_id", courseId);
-
-      if (!competencyUnits || competencyUnits.length === 0) continue;
-
-      const unitIds = competencyUnits.map((cu) => cu.id);
-      const { data: evaluations } = await supabase
-        .from("evaluations")
-        .select("total_score")
-        .eq("student_id", cs.student_id)
-        .in("competency_unit_id", unitIds)
-        .not("total_score", "is", null);
-
-      const scores =
-        evaluations?.map((e) => e.total_score).filter((s) => s !== null) || [];
-      allScores.push(...scores);
-    }
-
-    // 점수 분포 계산
+    // 점수 분포 계산 (이미 조회한 데이터 사용)
     const scoreDistribution = {
-      over90: allScores.filter((s) => s >= 90).length,
-      over80: allScores.filter((s) => s >= 80 && s < 90).length,
-      over70: allScores.filter((s) => s >= 70 && s < 80).length,
-      over60: allScores.filter((s) => s >= 60 && s < 70).length,
-      under60: allScores.filter((s) => s < 60).length,
-      total: allScores.length,
+      over90: allStudentScores.filter((s) => s >= 90).length,
+      over80: allStudentScores.filter((s) => s >= 80 && s < 90).length,
+      over70: allStudentScores.filter((s) => s >= 70 && s < 80).length,
+      over60: allStudentScores.filter((s) => s >= 60 && s < 70).length,
+      under60: allStudentScores.filter((s) => s < 60).length,
+      total: allStudentScores.length,
     };
 
     return NextResponse.json({

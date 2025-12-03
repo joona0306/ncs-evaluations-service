@@ -24,6 +24,11 @@ NCS 훈련생 성적관리 및 평가 시스템입니다.
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+
+# 선택사항: Connection Pooler 사용 (성능 개선)
+# Supabase 대시보드 > Settings > Database > Connection Pooling에서 확인
+# 예: https://your-project-id.pooler.supabase.co
+NEXT_PUBLIC_SUPABASE_POOLER_URL=https://your-project-id.pooler.supabase.co
 ```
 
 **Supabase 키 확인 방법**:
@@ -36,6 +41,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
    - **Project URL** 복사 → `NEXT_PUBLIC_SUPABASE_URL`에 사용
    - **anon public** 키 복사 → `NEXT_PUBLIC_SUPABASE_ANON_KEY`에 사용
 
+2. **Connection Pooler URL** (선택사항, 성능 개선):
+   - Supabase 대시보드 > **Settings** > **Database** > **Connection Pooling** 메뉴 클릭
+   - Connection string에서 URL 추출 (예: `https://xxxxx.pooler.supabase.co`)
+   - `NEXT_PUBLIC_SUPABASE_POOLER_URL`에 설정
+   - **효과**: 동시 연결 수 증가, 동시 사용자 증가 시 성능 저하 완화
+
 **중요**:
 
 - `your-project-id`를 실제 Supabase 프로젝트 ID로 변경하세요
@@ -45,11 +56,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 
 ### 3. 데이터베이스 마이그레이션 실행
 
-Supabase 대시보드의 SQL Editor에서 다음 파일을 실행하세요:
+Supabase 대시보드의 SQL Editor에서 다음 파일을 순서대로 실행하세요:
 
 1. `supabase/migrations/000_consolidated_schema.sql` - 전체 내용 복사하여 실행
+2. `supabase/migrations/035_add_performance_indexes.sql` - 성능 개선 인덱스 추가 (권장)
 
 **참고**: 통합 스키마 파일 하나로 전체 데이터베이스를 구축할 수 있습니다. 자세한 내용은 `supabase/migrations/README.md`를 참고하세요.
+
+**성능 최적화**: `035_add_performance_indexes.sql` 마이그레이션을 실행하면 쿼리 성능이 크게 향상됩니다.
 
 ### 4. 관리자 계정 생성
 
