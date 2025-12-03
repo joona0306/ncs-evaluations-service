@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
 interface SignatureCanvasProps {
@@ -9,9 +10,23 @@ interface SignatureCanvasProps {
   onCancel: () => void;
 }
 
-export function SignatureCanvasComponent({ onSave, onCancel }: SignatureCanvasProps) {
+export function SignatureCanvasComponent({
+  onSave,
+  onCancel,
+}: SignatureCanvasProps) {
   const sigCanvasRef = useRef<SignatureCanvas>(null);
   const [isEmpty, setIsEmpty] = useState(true);
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // hydration mismatch 방지
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 다크모드 감지 (resolvedTheme 사용)
+  const isDarkMode = mounted && (resolvedTheme === "dark" || theme === "dark");
+  const penColor = isDarkMode ? "#ffffff" : "#000000"; // 다크모드: 흰색, 라이트모드: 검은색
 
   const handleClear = () => {
     sigCanvasRef.current?.clear();
@@ -37,6 +52,8 @@ export function SignatureCanvasComponent({ onSave, onCancel }: SignatureCanvasPr
           canvasProps={{
             className: "w-full h-64",
           }}
+          penColor={penColor}
+          backgroundColor={isDarkMode ? "#111827" : "#ffffff"} // 다크모드: dark:bg-gray-900, 라이트모드: white
           onBegin={handleBegin}
         />
       </div>
@@ -54,4 +71,3 @@ export function SignatureCanvasComponent({ onSave, onCancel }: SignatureCanvasPr
     </div>
   );
 }
-

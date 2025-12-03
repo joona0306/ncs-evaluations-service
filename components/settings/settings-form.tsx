@@ -52,14 +52,13 @@ export function SettingsForm() {
   }, [mounted, setTheme]);
 
   const handleThemeChange = async (newTheme: string) => {
+    // 이전 테마 저장 (복원용)
+    const previousTheme = selectedTheme;
     setSelectedTheme(newTheme);
     setSaving(true);
 
     try {
-      // 테마 즉시 적용
-      setTheme(newTheme);
-
-      // 서버에 저장
+      // 서버에 먼저 저장
       const response = await fetch("/api/user/preferences", {
         method: "POST",
         headers: {
@@ -71,16 +70,15 @@ export function SettingsForm() {
       if (!response.ok) {
         throw new Error("설정 저장에 실패했습니다.");
       }
+
+      // 저장 성공 후 테마 적용 (깜빡임 방지)
+      setTheme(newTheme);
     } catch (error: any) {
       console.error("설정 저장 실패:", error);
+      // 실패 시 이전 값으로 복원 (깜빡임 최소화)
+      setSelectedTheme(previousTheme);
+      // 테마는 변경하지 않음 (이미 변경되지 않았으므로)
       alert("설정 저장에 실패했습니다. 다시 시도해주세요.");
-      // 실패 시 이전 값으로 복원
-      const response = await fetch("/api/user/preferences");
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedTheme(data.theme || "system");
-        setTheme(data.theme || "system");
-      }
     } finally {
       setSaving(false);
     }

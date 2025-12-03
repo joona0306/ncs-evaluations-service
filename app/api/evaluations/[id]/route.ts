@@ -35,6 +35,7 @@ export async function GET(
           name,
           code,
           description,
+          course_id,
           training_courses(
             id,
             name,

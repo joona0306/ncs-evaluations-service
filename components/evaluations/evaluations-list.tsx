@@ -139,6 +139,7 @@ export function EvaluationsList({
           const url = submissionId
             ? `/dashboard/evaluations/${evaluationId}/edit?submission_id=${submissionId}`
             : `/dashboard/evaluations/${evaluationId}/edit`;
+          // router.push 대신 window.location.href 사용 (페이지 전체 리로드 필요)
           window.location.href = url;
         } else {
           // 새 평가 작성 페이지로 이동

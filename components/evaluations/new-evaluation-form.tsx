@@ -177,8 +177,30 @@ export function NewEvaluationForm({
       }
 
       const evalData = await response.json();
-      const unit = evalData.competency_units;
-      setSelectedCourse(unit.course_id);
+      // competency_units가 배열 또는 객체일 수 있음
+      const unit = Array.isArray(evalData.competency_units)
+        ? evalData.competency_units[0]
+        : evalData.competency_units;
+      
+      // course_id 추출 (training_courses가 중첩되어 있을 수 있음)
+      let courseId: string | null = null;
+      if (unit) {
+        // 직접 course_id가 있는 경우
+        if (unit.course_id) {
+          courseId = unit.course_id;
+        }
+        // training_courses가 중첩되어 있는 경우
+        else if (unit.training_courses) {
+          const course = Array.isArray(unit.training_courses)
+            ? unit.training_courses[0]
+            : unit.training_courses;
+          courseId = course?.id || null;
+        }
+      }
+
+      if (courseId) {
+        setSelectedCourse(courseId);
+      }
       setSelectedUnit(evaluation.competency_unit_id);
       setSelectedStudent(evaluation.student_id);
       setComments(evaluation.comments || "");

@@ -11,7 +11,7 @@ import { useAuthStore } from "@/stores/auth-store";
 export default function EditEvaluationPageClient() {
   const params = useParams();
   const router = useRouter();
-  const { profile } = useAuthStore();
+  const { profile, isInitialized } = useAuthStore();
   const [evaluation, setEvaluation] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +63,11 @@ export default function EditEvaluationPageClient() {
   }, [params.id, profile]);
 
   useEffect(() => {
+    // 프로필이 초기화될 때까지 대기
+    if (!isInitialized) {
+      return;
+    }
+
     if (!profile) {
       router.push("/login");
       return;
@@ -74,7 +79,7 @@ export default function EditEvaluationPageClient() {
     }
 
     loadData();
-  }, [profile, router, loadData]);
+  }, [isInitialized, profile, router, loadData]);
 
   if (loading) {
     return (

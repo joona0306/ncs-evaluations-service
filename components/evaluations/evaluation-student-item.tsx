@@ -124,22 +124,20 @@ function EvaluationStudentItemComponent({
                   상세보기
                 </Button>
               </Link>
-              {!latestSubmission && (
-                <Button
-                  size="sm"
-                  className="w-full sm:w-auto"
-                  onClick={() =>
-                    onEvaluate(
-                      competencyUnitId,
-                      studentId,
-                      latestSubmission?.id,
-                      evaluation.id
-                    )
-                  }
-                >
-                  수정하기
-                </Button>
-              )}
+              <Button
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={() =>
+                  onEvaluate(
+                    competencyUnitId,
+                    studentId,
+                    latestSubmission?.id,
+                    evaluation.id
+                  )
+                }
+              >
+                수정하기
+              </Button>
             </>
           ) : (
             <Button
