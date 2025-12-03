@@ -18,16 +18,16 @@ export default function EditEvaluationPageClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 프로필이 초기화될 때까지 대기
-    if (!isInitialized) {
-      return;
-    }
-
+    // profile이 없으면 대기 (isInitialized는 체크하지 않음)
     if (!profile) {
-      router.push("/login");
+      // isInitialized가 true이고 profile이 없으면 로그인 페이지로 리다이렉트
+      if (isInitialized) {
+        router.push("/login");
+      }
       return;
     }
 
+    // 권한 확인
     if (profile.role !== "admin" && profile.role !== "teacher") {
       router.push("/dashboard/evaluations");
       return;
@@ -43,6 +43,7 @@ export default function EditEvaluationPageClient() {
       setLoading(true);
       setError(null);
       try {
+        console.log("데이터 로드 시작");
         // 평가 데이터와 훈련과정 목록을 병렬로 로드
         const [evalResponse, coursesResponse] = await Promise.all([
           fetch(`/api/evaluations/${params.id}`, {
@@ -90,7 +91,7 @@ export default function EditEvaluationPageClient() {
 
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitialized, profile?.id, params.id]);
+  }, [profile?.id, params.id]);
 
   // 디버깅: 현재 상태 로그
   useEffect(() => {
@@ -104,8 +105,12 @@ export default function EditEvaluationPageClient() {
     });
   }, [isInitialized, loading, evaluation, courses, error]);
 
-  // 프로필 초기화 대기 중 또는 로딩 중
-  if (!isInitialized) {
+  // profile이 없고 isInitialized가 true면 로그인 페이지로 리다이렉트 (useEffect에서 처리)
+  // profile이 없고 isInitialized가 false면 스켈레톤 표시
+  if (!profile) {
+    if (isInitialized) {
+      return null; // useEffect에서 리다이렉트 처리 중
+    }
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <BackButton href={`/dashboard/evaluations/${params.id}`} />
@@ -117,10 +122,6 @@ export default function EditEvaluationPageClient() {
         <CardSkeleton count={3} />
       </div>
     );
-  }
-
-  if (!profile) {
-    return null;
   }
 
   // 에러가 있으면 에러 메시지 표시
