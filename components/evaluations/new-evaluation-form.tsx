@@ -101,8 +101,59 @@ export function NewEvaluationForm({
     }
   }, [evaluation, searchParams]);
 
+  // URL 파라미터에서 직접 과제물 로드 (타이밍 문제 해결)
+  useEffect(() => {
+    if (!evaluation) {
+      const unitId = searchParams.get("competency_unit_id");
+      const studentId = searchParams.get("student_id");
+
+      // URL 파라미터가 있으면 즉시 과제물 로드
+      if (unitId && studentId) {
+        const loadSubmissionsFromParams = async () => {
+          try {
+            const response = await fetch(
+              `/api/submissions?competency_unit_id=${unitId}&student_id=${studentId}`
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              const submissionsArray = Array.isArray(data)
+                ? data
+                : data?.data || [];
+
+              console.log("URL 파라미터에서 과제물 로드:", {
+                unitId,
+                studentId,
+                submissionsArray,
+                count: submissionsArray.length,
+              });
+
+              setSubmissions(submissionsArray);
+
+              // submission_id가 URL에 있으면 선택
+              const submissionId = searchParams.get("submission_id");
+              if (
+                submissionId &&
+                submissionsArray.some((s: any) => s.id === submissionId)
+              ) {
+                setSelectedSubmissionId(submissionId);
+              }
+            }
+          } catch (error: any) {
+            console.error("URL 파라미터에서 과제물 로드 실패:", error);
+          }
+        };
+
+        loadSubmissionsFromParams();
+      }
+    }
+  }, [evaluation, searchParams]);
+
   const loadSubmissions = useCallback(async () => {
-    if (!selectedUnit || !selectedStudent) return;
+    if (!selectedUnit || !selectedStudent) {
+      setSubmissions([]);
+      return;
+    }
 
     try {
       const response = await fetch(
@@ -110,14 +161,27 @@ export function NewEvaluationForm({
       );
 
       if (!response.ok) {
-        console.error("과제물 조회 오류");
+        console.error(
+          "과제물 조회 오류:",
+          response.status,
+          response.statusText
+        );
         setSubmissions([]);
         return;
       }
 
       const data = await response.json();
-      // API 응답이 배열이 아닌 객체일 수 있음 (페이지네이션 등)
+      // API 응답이 페이지네이션 객체인 경우 data 속성 확인
       const submissionsArray = Array.isArray(data) ? data : data?.data || [];
+
+      console.log("과제물 조회 결과:", {
+        selectedUnit,
+        selectedStudent,
+        responseData: data,
+        submissionsArray,
+        count: submissionsArray.length,
+      });
+
       setSubmissions(submissionsArray);
     } catch (error: any) {
       console.error("과제물 로드 실패:", error);
@@ -181,7 +245,7 @@ export function NewEvaluationForm({
       const unit = Array.isArray(evalData.competency_units)
         ? evalData.competency_units[0]
         : evalData.competency_units;
-      
+
       // course_id 추출 (training_courses가 중첩되어 있을 수 있음)
       let courseId: string | null = null;
       if (unit) {

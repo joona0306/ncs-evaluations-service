@@ -64,6 +64,13 @@ CREATE POLICY "Students can delete their own submissions"
   TO authenticated
   USING (student_id = (select auth.uid()));
 
+-- 교사/관리자 SELECT 정책 확인 및 재생성 (이미 존재하더라도 최적화를 위해 재생성)
+DROP POLICY IF EXISTS "Admins and teachers can view all submissions" ON public.submissions;
+CREATE POLICY "Admins and teachers can view all submissions"
+  ON public.submissions FOR SELECT
+  TO authenticated
+  USING ((select public.check_can_manage()));
+
 -- 3. signatures 테이블 정책 최적화
 -- SELECT 정책
 DROP POLICY IF EXISTS "Users can view their own signatures" ON public.signatures;

@@ -99,6 +99,18 @@ export async function GET(request: Request) {
       );
     }
 
+    // 디버깅: 교사/관리자가 조회하는 경우 로그 추가
+    if (profile.role === "teacher" || profile.role === "admin") {
+      console.log("과제물 조회 (교사/관리자):", {
+        profileRole: profile.role,
+        studentId,
+        competencyUnitId,
+        evaluationScheduleId,
+        resultCount: data?.length || 0,
+        data: data || []
+      });
+    }
+
     // 페이징 정보와 함께 응답
     return NextResponse.json(
       createPaginatedResponse(data || [], limit, offset, count || undefined)
