@@ -56,41 +56,56 @@ export function AchievementCharts({
       name: "90점 이상",
       value: scoreDistribution.over90,
       color: COLORS.over90,
-      percentage: scoreDistribution.total > 0
-        ? Math.round((scoreDistribution.over90 / scoreDistribution.total) * 100)
-        : 0,
+      percentage:
+        scoreDistribution.total > 0
+          ? Math.round(
+              (scoreDistribution.over90 / scoreDistribution.total) * 100
+            )
+          : 0,
     },
     {
       name: "80점 이상",
       value: scoreDistribution.over80,
       color: COLORS.over80,
-      percentage: scoreDistribution.total > 0
-        ? Math.round((scoreDistribution.over80 / scoreDistribution.total) * 100)
-        : 0,
+      percentage:
+        scoreDistribution.total > 0
+          ? Math.round(
+              (scoreDistribution.over80 / scoreDistribution.total) * 100
+            )
+          : 0,
     },
     {
       name: "70점 이상",
       value: scoreDistribution.over70,
       color: COLORS.over70,
-      percentage: scoreDistribution.total > 0
-        ? Math.round((scoreDistribution.over70 / scoreDistribution.total) * 100)
-        : 0,
+      percentage:
+        scoreDistribution.total > 0
+          ? Math.round(
+              (scoreDistribution.over70 / scoreDistribution.total) * 100
+            )
+          : 0,
     },
     {
       name: "60점 이상",
       value: scoreDistribution.over60,
       color: COLORS.over60,
-      percentage: scoreDistribution.total > 0
-        ? Math.round((scoreDistribution.over60 / scoreDistribution.total) * 100)
-        : 0,
+      percentage:
+        scoreDistribution.total > 0
+          ? Math.round(
+              (scoreDistribution.over60 / scoreDistribution.total) * 100
+            )
+          : 0,
     },
     {
       name: "60점 미만",
       value: scoreDistribution.under60,
       color: COLORS.under60,
-      percentage: scoreDistribution.total > 0
-        ? Math.round((scoreDistribution.under60 / scoreDistribution.total) * 100)
-        : 0,
+      percentage:
+        scoreDistribution.total > 0
+          ? Math.round(
+              (scoreDistribution.under60 / scoreDistribution.total) * 100
+            )
+          : 0,
     },
   ].filter((item) => item.value > 0);
 
@@ -98,9 +113,10 @@ export function AchievementCharts({
   const barData = students
     .slice(0, 15)
     .map((student) => ({
-      name: student.student_name.length > 8
-        ? student.student_name.substring(0, 8) + "..."
-        : student.student_name,
+      name:
+        student.student_name.length > 8
+          ? student.student_name.substring(0, 8) + "..."
+          : student.student_name,
       fullName: student.student_name,
       score: student.average_score,
       email: student.student_email,
@@ -111,7 +127,9 @@ export function AchievementCharts({
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow-lg">
-          <p className="font-semibold">{payload[0].payload.fullName || payload[0].name}</p>
+          <p className="font-semibold">
+            {payload[0].payload.fullName || payload[0].name}
+          </p>
           <p className="text-sm text-muted-foreground">
             {payload[0].payload.email}
           </p>
@@ -142,27 +160,39 @@ export function AchievementCharts({
             <div className="text-sm space-y-1">
               <div className="flex justify-between">
                 <span>90점 이상:</span>
-                <span className="font-medium">{scoreDistribution.over90}명</span>
+                <span className="font-medium">
+                  {scoreDistribution.over90}명
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>80점 이상:</span>
-                <span className="font-medium">{scoreDistribution.over80}명</span>
+                <span className="font-medium">
+                  {scoreDistribution.over80}명
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>70점 이상:</span>
-                <span className="font-medium">{scoreDistribution.over70}명</span>
+                <span className="font-medium">
+                  {scoreDistribution.over70}명
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>60점 이상:</span>
-                <span className="font-medium">{scoreDistribution.over60}명</span>
+                <span className="font-medium">
+                  {scoreDistribution.over60}명
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>60점 미만:</span>
-                <span className="font-medium">{scoreDistribution.under60}명</span>
+                <span className="font-medium">
+                  {scoreDistribution.under60}명
+                </span>
               </div>
               <div className="flex justify-between pt-2 border-t">
                 <span className="font-semibold">응시 인원:</span>
-                <span className="font-semibold">{scoreDistribution.total}명</span>
+                <span className="font-semibold">
+                  {scoreDistribution.total}명
+                </span>
               </div>
             </div>
             <div className="h-48">
@@ -174,8 +204,8 @@ export function AchievementCharts({
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percentage }) =>
-                        `${name}: ${percentage}%`
+                      label={({ name, percent }) =>
+                        `${name}: ${percent ? Math.round(percent * 100) : 0}%`
                       }
                       outerRadius={80}
                       fill="#8884d8"
@@ -244,4 +274,3 @@ export function AchievementCharts({
     </div>
   );
 }
-
