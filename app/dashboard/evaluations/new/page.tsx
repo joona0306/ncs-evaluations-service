@@ -5,8 +5,8 @@ import { BackButton } from "@/components/ui/back-button";
 import { NewEvaluationForm } from "@/components/evaluations/new-evaluation-form";
 import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 
-// 캐싱 전략: 30초마다 재검증
-export const revalidate = 30;
+// 캐싱 전략: 1분마다 재검증
+export const revalidate = 60;
 
 export default async function NewEvaluationPage() {
   const profile = await getCurrentUserProfile();

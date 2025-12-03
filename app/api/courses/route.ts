@@ -4,6 +4,9 @@ import { getCurrentUserProfile } from "@/lib/auth";
 import { CreateCourseSchema, UpdateCourseSchema } from "@/lib/validation/schemas";
 import { validateRequest } from "@/lib/validation/api-validator";
 
+// 캐싱 전략: 5분간 캐시 유지
+export const revalidate = 300;
+
 export async function GET(request: Request) {
   try {
     const profile = await getCurrentUserProfile();

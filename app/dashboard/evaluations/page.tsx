@@ -5,8 +5,8 @@ import { BackButton } from "@/components/ui/back-button";
 import { EvaluationsList } from "@/components/evaluations/evaluations-list";
 import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
 
-// 캐싱 전략: 30초마다 재검증 (평가 데이터는 자주 변경될 수 있음)
-export const revalidate = 30;
+// 캐싱 전략: 1분마다 재검증 (평가 데이터는 자주 변경될 수 있음)
+export const revalidate = 60;
 
 async function fetchCoursesForProfile(profile: any) {
   const supabase = await createClient();

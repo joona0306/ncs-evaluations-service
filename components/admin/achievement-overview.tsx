@@ -1,9 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { CardSkeleton, TableSkeleton } from "@/components/ui/skeleton";
+import { AchievementCharts } from "./achievement-charts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useCoursesQuery } from "@/lib/hooks/use-courses-query";
+import { useAchievementsQuery } from "@/lib/hooks/use-achievements-query";
 
 interface CourseAchievement {
   course_id: string;
@@ -11,6 +21,16 @@ interface CourseAchievement {
   course_code: string;
   students: StudentAchievement[];
   course_average: number;
+  competency_units?: any[];
+  competency_unit_average?: number;
+  score_distribution?: {
+    over90: number;
+    over80: number;
+    over70: number;
+    over60: number;
+    under60: number;
+    total: number;
+  };
 }
 
 interface StudentAchievement {
@@ -22,83 +42,27 @@ interface StudentAchievement {
 }
 
 export function AchievementOverview() {
-  const [courses, setCourses] = useState<any[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string>("");
-  const [achievement, setAchievement] = useState<CourseAchievement | null>(
-    null
-  );
-  const [loading, setLoading] = useState(false);
-  const [loadingCourses, setLoadingCourses] = useState(true);
-  const [loadingAchievement, setLoadingAchievement] = useState(false);
 
+  // React Query를 사용한 데이터 페칭
+  const {
+    data: courses = [],
+    isLoading: loadingCourses,
+    error: coursesError,
+  } = useCoursesQuery();
+
+  const {
+    data: achievement,
+    isLoading: loadingAchievement,
+    error: achievementError,
+  } = useAchievementsQuery(selectedCourse || null);
+
+  // 첫 번째 과정 자동 선택 (한 번만 실행)
   useEffect(() => {
-    loadCourses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (selectedCourse && courses.length > 0) {
-      loadAchievement();
+    if (courses.length > 0 && !selectedCourse) {
+      setSelectedCourse(courses[0].id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCourse, courses.length]);
-
-  const loadCourses = async () => {
-    setLoadingCourses(true);
-    try {
-      const response = await fetch("/api/courses", {
-        next: { revalidate: 60 }, // 60초마다 재검증
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "훈련과정을 불러올 수 없습니다.");
-      }
-
-      const data = await response.json();
-      if (data && Array.isArray(data)) {
-        setCourses(data);
-        if (data.length > 0 && !selectedCourse) {
-          setSelectedCourse(data[0].id);
-        }
-      } else {
-        setCourses([]);
-      }
-    } catch (error: any) {
-      console.error("훈련과정 로드 실패:", error);
-      setCourses([]);
-    } finally {
-      setLoadingCourses(false);
-    }
-  };
-
-  const loadAchievement = async () => {
-    setLoadingAchievement(true);
-    try {
-      if (!selectedCourse) {
-        setLoadingAchievement(false);
-        return;
-      }
-
-      const response = await fetch(
-        `/api/achievements?course_id=${selectedCourse}`,
-        { cache: "no-store" }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "학업 성취도를 불러올 수 없습니다.");
-      }
-
-      const data = await response.json();
-      setAchievement(data);
-    } catch (error: any) {
-      console.error("성취도 조회 오류:", error);
-      setAchievement(null);
-    } finally {
-      setLoadingAchievement(false);
-    }
-  };
+  }, [courses.length]); // courses.length만 dependency로 사용하여 courses 배열 참조 변경 시에만 실행
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-600 dark:text-green-400 font-bold";
@@ -120,6 +84,10 @@ export function AchievementOverview() {
     <div className="space-y-4">
       {loadingCourses ? (
         <CardSkeleton count={2} />
+      ) : coursesError ? (
+        <div className="p-4 text-center text-red-600">
+          <p>훈련과정을 불러오는 중 오류가 발생했습니다.</p>
+        </div>
       ) : courses.length === 0 ? (
         <div className="p-4 text-center text-muted-foreground">
           <p>등록된 훈련과정이 없습니다.</p>
@@ -147,87 +115,120 @@ export function AchievementOverview() {
               <CardSkeleton count={1} />
               <TableSkeleton rows={5} cols={4} />
             </div>
+          ) : achievementError ? (
+            <div className="p-4 text-center text-red-600">
+              <p>학업 성취도를 불러오는 중 오류가 발생했습니다.</p>
+            </div>
           ) : achievement ? (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* 과정 평균 */}
-              <div className="p-4 border rounded-lg bg-blue-50 dark:bg-gray-800/50">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      과정 평균 점수
-                    </p>
-                    <p className="text-lg font-semibold text-foreground">
-                      {achievement.course_name}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-4xl font-bold ${getScoreColor(
-                        achievement.course_average
-                      )}`}
-                    >
-                      {achievement.course_average}
-                    </p>
-                    <p className="text-sm text-muted-foreground">/ 100점</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 학생별 성취도 */}
-              <div>
-                <h4 className="font-semibold mb-3">
-                  훈련생별 평균 점수 ({achievement.students.length}명)
-                </h4>
-                {achievement.students.length > 0 ? (
-                  <div className="space-y-2">
-                    {achievement.students.map((student, index) => (
-                      <div
-                        key={student.student_id}
-                        className="flex justify-between items-center p-3 border rounded hover:bg-gray-50 dark:hover:bg-gray-800/50 dark:bg-gray-900/30"
+              <Card>
+                <CardHeader>
+                  <CardTitle>과정 평균 점수</CardTitle>
+                  <CardDescription>{achievement.course_name}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        평균 점수
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p
+                        className={`text-4xl font-bold ${getScoreColor(
+                          achievement.course_average
+                        )}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-muted-foreground w-6">
-                            {index + 1}
-                          </span>
-                          <div>
-                            <p className="font-medium">
-                              {student.student_name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {student.student_email}
-                            </p>
+                        {achievement.course_average}
+                      </p>
+                      <p className="text-sm text-muted-foreground">/ 100점</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 차트 섹션 */}
+              {achievement.score_distribution &&
+                achievement.competency_unit_average !== undefined && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>평가결과 및 분석</CardTitle>
+                      <CardDescription>
+                        능력단위별 평가 결과와 점수 분포를 확인할 수 있습니다
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <AchievementCharts
+                        scoreDistribution={achievement.score_distribution}
+                        students={achievement.students}
+                        competencyUnitAverage={
+                          achievement.competency_unit_average
+                        }
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+              {/* 학생별 성취도 테이블 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    훈련생별 평균 점수 ({achievement.students.length}명)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {achievement.students.length > 0 ? (
+                    <div className="space-y-2">
+                      {achievement.students.map((student, index) => (
+                        <div
+                          key={student.student_id}
+                          className="flex justify-between items-center p-3 border rounded hover:bg-gray-50 dark:hover:bg-gray-800/50 dark:bg-gray-900/30"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-muted-foreground w-6">
+                              {index + 1}
+                            </span>
+                            <div>
+                              <p className="font-medium">
+                                {student.student_name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {student.student_email}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {student.evaluations_count > 0 ? (
+                              <>
+                                <p
+                                  className={`text-2xl font-bold ${getScoreColor(
+                                    student.average_score
+                                  )}`}
+                                >
+                                  {student.average_score}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  평가 {student.evaluations_count}건 ·{" "}
+                                  {getScoreGrade(student.average_score)} 등급
+                                </p>
+                              </>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                평가 없음
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <div className="text-right">
-                          {student.evaluations_count > 0 ? (
-                            <>
-                              <p
-                                className={`text-2xl font-bold ${getScoreColor(
-                                  student.average_score
-                                )}`}
-                              >
-                                {student.average_score}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                평가 {student.evaluations_count}건 ·{" "}
-                                {getScoreGrade(student.average_score)} 등급
-                              </p>
-                            </>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              평가 없음
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    등록된 훈련생이 없습니다.
-                  </p>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      등록된 훈련생이 없습니다.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">

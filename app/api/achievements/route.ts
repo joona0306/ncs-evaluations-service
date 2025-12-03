@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 
-export const dynamic = 'force-dynamic';
+// 캐싱 전략: 1분간 캐시 유지 (성취도 데이터는 자주 변경될 수 있음)
+export const revalidate = 60;
 
 export async function GET(request: Request) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile || profile.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -32,10 +33,7 @@ export async function GET(request: Request) {
       .single();
 
     if (courseError || !course) {
-      return NextResponse.json(
-        { error: "Course not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
     // 해당 과정의 모든 학생 조회
@@ -78,9 +76,7 @@ export async function GET(request: Request) {
     let totalEvaluations = 0;
 
     for (const cs of courseStudents) {
-      const profile = Array.isArray(cs.profiles)
-        ? cs.profiles[0]
-        : cs.profiles;
+      const profile = Array.isArray(cs.profiles) ? cs.profiles[0] : cs.profiles;
 
       if (!profile) continue;
 
@@ -111,7 +107,8 @@ export async function GET(request: Request) {
         .in("competency_unit_id", unitIds)
         .not("total_score", "is", null);
 
-      const scores = evaluations?.map((e) => e.total_score).filter((s) => s !== null) || [];
+      const scores =
+        evaluations?.map((e) => e.total_score).filter((s) => s !== null) || [];
       const avgScore =
         scores.length > 0
           ? scores.reduce((a, b) => a + b, 0) / scores.length
@@ -134,6 +131,89 @@ export async function GET(request: Request) {
     const courseAverage =
       totalEvaluations > 0 ? totalScore / totalEvaluations : 0;
 
+    // 능력단위별 평가 데이터 조회
+    const { data: competencyUnits } = await supabase
+      .from("competency_units")
+      .select("id, name, code")
+      .eq("course_id", courseId)
+      .order("code", { ascending: true });
+
+    const unitData: any[] = [];
+    let totalUnitScore = 0;
+    let totalUnitEvaluations = 0;
+
+    if (competencyUnits && competencyUnits.length > 0) {
+      for (const unit of competencyUnits) {
+        // 해당 능력단위의 모든 평가 조회
+        const { data: unitEvaluations } = await supabase
+          .from("evaluations")
+          .select("total_score")
+          .eq("competency_unit_id", unit.id)
+          .not("total_score", "is", null);
+
+        const unitScores =
+          unitEvaluations
+            ?.map((e) => e.total_score)
+            .filter((s) => s !== null) || [];
+        const unitAverage =
+          unitScores.length > 0
+            ? unitScores.reduce((a, b) => a + b, 0) / unitScores.length
+            : 0;
+
+        unitData.push({
+          unit_id: unit.id,
+          unit_name: unit.name,
+          unit_code: unit.code,
+          average_score: Math.round(unitAverage * 100) / 100,
+          evaluation_count: unitScores.length,
+        });
+
+        if (unitScores.length > 0) {
+          totalUnitScore += unitAverage;
+          totalUnitEvaluations++;
+        }
+      }
+    }
+
+    const competencyUnitAverage =
+      totalUnitEvaluations > 0 ? totalUnitScore / totalUnitEvaluations : 0;
+
+    // 점수 분포 계산 (모든 평가 점수 기준)
+    const allScores: number[] = [];
+    for (const cs of courseStudents) {
+      const profile = Array.isArray(cs.profiles) ? cs.profiles[0] : cs.profiles;
+      if (!profile) continue;
+
+      const { data: competencyUnits } = await supabase
+        .from("competency_units")
+        .select("id")
+        .eq("course_id", courseId);
+
+      if (!competencyUnits || competencyUnits.length === 0) continue;
+
+      const unitIds = competencyUnits.map((cu) => cu.id);
+      const { data: evaluations } = await supabase
+        .from("evaluations")
+        .select("total_score")
+        .eq("student_id", cs.student_id)
+        .in("competency_unit_id", unitIds)
+        .not("total_score", "is", null);
+
+      const scores =
+        evaluations?.map((e) => e.total_score).filter((s) => s !== null) || [];
+      allScores.push(...scores);
+    }
+
+    // 점수 분포 계산
+    const scoreDistribution = {
+      over90: allScores.filter((s) => s >= 90).length,
+      over80: allScores.filter((s) => s >= 80 && s < 90).length,
+      over70: allScores.filter((s) => s >= 70 && s < 80).length,
+      over60: allScores.filter((s) => s >= 60 && s < 70).length,
+      under60: allScores.filter((s) => s < 60).length,
+      total: allScores.length,
+    };
+
     return NextResponse.json({
       course_id: courseId,
       course_name: course.name,
@@ -142,6 +222,9 @@ export async function GET(request: Request) {
         (a, b) => b.average_score - a.average_score
       ),
       course_average: Math.round(courseAverage * 100) / 100,
+      competency_units: unitData,
+      competency_unit_average: Math.round(competencyUnitAverage * 100) / 100,
+      score_distribution: scoreDistribution,
     });
   } catch (error: any) {
     console.error("학업 성취도 조회 실패:", error);
@@ -151,4 +234,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

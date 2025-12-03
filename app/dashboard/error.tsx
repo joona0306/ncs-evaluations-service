@@ -35,7 +35,7 @@ export default function Error({
           )}
           {error.digest && (
             <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-md">
-              <p className="text-xs text-gray-600 dark:text-gray-400">에러 ID: {error.digest}</p>
+              <p className="text-xs text-gray-700 dark:text-gray-400">에러 ID: {error.digest}</p>
             </div>
           )}
           <div className="flex gap-2">

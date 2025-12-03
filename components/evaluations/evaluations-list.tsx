@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +42,7 @@ export function EvaluationsList({
   const [error, setError] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
+  const hasLoadedRef = useRef(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -107,16 +108,23 @@ export function EvaluationsList({
     }
   };
 
-  // 초기 데이터가 없을 때만 로드
+  // 초기 데이터가 없을 때만 로드 (한 번만 실행)
+  const hasInitialData = useMemo(
+    () =>
+      initialCourses.length > 0 || Object.keys(initialCourseData).length > 0,
+    [initialCourses.length, Object.keys(initialCourseData).length]
+  );
+
   useEffect(() => {
-    if (
-      initialCourses.length === 0 &&
-      Object.keys(initialCourseData).length === 0
-    ) {
-      loadData();
+    // 이미 로드했거나 초기 데이터가 있으면 스킵
+    if (hasLoadedRef.current || hasInitialData) {
+      return;
     }
+
+    hasLoadedRef.current = true;
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile.id, profile.role]);
+  }, [hasInitialData]); // hasInitialData가 변경될 때만 체크
 
   const handleEvaluate = useCallback(
     async (
@@ -162,9 +170,13 @@ export function EvaluationsList({
     );
   }, [selectedCourseId, selectedUnitId, courseData]);
 
-  // 초기 선택: 첫 번째 훈련과정과 첫 번째 능력단위 자동 선택
+  // 초기 선택: 첫 번째 훈련과정과 첫 번째 능력단위 자동 선택 (한 번만 실행)
+  const hasInitializedRef = useRef(false);
   useEffect(() => {
+    if (hasInitializedRef.current) return;
+    
     if (courses.length > 0 && !selectedCourseId) {
+      hasInitializedRef.current = true;
       const firstCourse = courses[0];
       setSelectedCourseId(firstCourse.id);
       const units = courseData[firstCourse.id] || [];
@@ -172,11 +184,14 @@ export function EvaluationsList({
         setSelectedUnitId(units[0].competency_unit.id);
       }
     }
-  }, [courses, courseData, selectedCourseId]);
+  }, [courses.length, courseData, selectedCourseId]); // courses.length만 사용하여 배열 참조 변경 방지
 
   // 훈련과정 변경 시 능력단위 초기화
+  const prevSelectedCourseIdRef = useRef<string>("");
   useEffect(() => {
-    if (selectedCourseId) {
+    // 선택된 과정이 실제로 변경되었을 때만 실행
+    if (selectedCourseId && selectedCourseId !== prevSelectedCourseIdRef.current) {
+      prevSelectedCourseIdRef.current = selectedCourseId;
       const units = courseData[selectedCourseId] || [];
       if (units.length > 0) {
         setSelectedUnitId(units[0].competency_unit.id);

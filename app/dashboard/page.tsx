@@ -13,9 +13,8 @@ import {
 import { CreateProfileButton } from "@/components/profile/create-profile-button";
 import dynamicImport from "next/dynamic";
 
-// 동적 렌더링 강제 (cookies 사용)
-// force-dynamic을 사용하면 revalidate는 무시됩니다
-export const dynamic = "force-dynamic";
+// 캐싱 전략: 1분마다 재검증
+export const revalidate = 60;
 
 // AchievementOverview를 동적 임포트로 지연 로딩 (코드 스플리팅)
 const AchievementOverviewLazy = dynamicImport(
@@ -68,8 +67,7 @@ export default async function DashboardPage() {
       const { data, error } = await supabase
         .from("training_courses")
         .select("*")
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("관리자 과정 조회 오류:", error);

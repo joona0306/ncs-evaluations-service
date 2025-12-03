@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 
-export const dynamic = 'force-dynamic';
+// 캐싱 전략: 1분간 캐시 유지 (평가 데이터는 자주 변경될 수 있음)
+export const revalidate = 60;
 
 export async function GET(request: Request) {
   try {

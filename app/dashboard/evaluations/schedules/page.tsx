@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { BackButton } from "@/components/ui/back-button";
 import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
+import { useCoursesQuery } from "@/lib/hooks/use-courses-query";
 import dynamic from "next/dynamic";
 import { CardSkeleton } from "@/components/ui/skeleton";
 
@@ -32,29 +33,25 @@ const EvaluationSchedulesManager = dynamic(
 export default function EvaluationSchedulesPage() {
   const router = useRouter();
   const { profile } = useAuthStore();
-  const [courses, setCourses] = useState<any[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const hasInitializedRef = useRef(false);
 
-  const loadCourses = useCallback(async () => {
-    try {
-      const response = await fetch("/api/courses", {
-        next: { revalidate: 60 }, // 일정 데이터는 자주 변경되지 않음
-      });
-      if (!response.ok) {
-        throw new Error("훈련과정을 불러올 수 없습니다.");
-      }
-      const data = await response.json();
-      setCourses(data || []);
-      if (data && data.length > 0 && !selectedCourseId) {
-        setSelectedCourseId(data[0].id);
-      }
-    } catch (err: any) {
-      console.error("훈련과정 로드 오류:", err);
-    } finally {
-      setLoading(false);
+  // React Query를 사용한 데이터 페칭
+  const {
+    data: courses = [],
+    isLoading: loading,
+    error: coursesError,
+  } = useCoursesQuery();
+
+  // 첫 번째 과정 자동 선택 (한 번만 실행)
+  useEffect(() => {
+    if (hasInitializedRef.current) return;
+    
+    if (courses.length > 0 && !selectedCourseId) {
+      hasInitializedRef.current = true;
+      setSelectedCourseId(courses[0].id);
     }
-  }, [selectedCourseId]);
+  }, [courses.length, selectedCourseId]);
 
   useEffect(() => {
     if (!profile) {
@@ -66,9 +63,7 @@ export default function EvaluationSchedulesPage() {
       router.push("/dashboard");
       return;
     }
-
-    loadCourses();
-  }, [profile, router, loadCourses]);
+  }, [profile, router]);
 
   if (loading) {
     return (
@@ -97,7 +92,15 @@ export default function EvaluationSchedulesPage() {
         <EvaluationTabs />
       </div>
 
-      {courses.length === 0 ? (
+      {coursesError ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-red-600">
+              훈련과정을 불러오는 중 오류가 발생했습니다.
+            </p>
+          </CardContent>
+        </Card>
+      ) : courses.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">
