@@ -190,7 +190,10 @@ export function AchievementCharts({
                   <span className="font-semibold">{scoreDistribution.total}명</span>
                 </div>
               </div>
-              <div className="h-48 w-full min-h-[192px] flex items-center justify-center">
+              <div 
+                className="w-full flex items-center justify-center"
+                style={{ height: "192px", minHeight: "192px", position: "relative" }}
+              >
                 <div className="text-muted-foreground">로딩 중...</div>
               </div>
             </div>
@@ -199,7 +202,10 @@ export function AchievementCharts({
             <h4 className="font-semibold mb-4">
               훈련생별 점수 분포 ({students.length}명)
             </h4>
-            <div className="h-[400px] w-full min-h-[400px] flex items-center justify-center">
+            <div 
+              className="w-full flex items-center justify-center"
+              style={{ height: "400px", minHeight: "400px", position: "relative" }}
+            >
               <div className="text-muted-foreground">로딩 중...</div>
             </div>
           </div>
@@ -261,7 +267,10 @@ export function AchievementCharts({
                 </span>
               </div>
             </div>
-            <div className="h-48 w-full min-h-[192px] flex items-center justify-center">
+            <div 
+              className="w-full"
+              style={{ height: "192px", minHeight: "192px", position: "relative" }}
+            >
               {pieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%" minHeight={192} minWidth={0}>
                   <PieChart>
@@ -299,7 +308,10 @@ export function AchievementCharts({
             훈련생별 점수 분포 ({students.length}명)
           </h4>
           {barData.length > 0 ? (
-            <div className="h-[400px] w-full min-h-[400px]">
+            <div 
+              className="w-full"
+              style={{ height: "400px", minHeight: "400px", position: "relative" }}
+            >
               <ResponsiveContainer width="100%" height="100%" minHeight={400} minWidth={0}>
                 <BarChart
                   data={barData}
