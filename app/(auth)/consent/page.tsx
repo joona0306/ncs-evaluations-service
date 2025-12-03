@@ -115,13 +115,12 @@ function ConsentPageContent() {
             )}
 
             <div className="space-y-3">
-              <div className="flex items-start space-x-2">
+              <div className="flex items-center space-x-2">
                 <Checkbox
                   id="agreeTerms"
                   checked={agreeTerms}
                   onChange={(e) => setAgreeTerms(e.target.checked)}
                   required
-                  className="mt-1"
                 />
                 <label
                   htmlFor="agreeTerms"
@@ -139,13 +138,12 @@ function ConsentPageContent() {
                 </label>
               </div>
 
-              <div className="flex items-start space-x-2">
+              <div className="flex items-center space-x-2">
                 <Checkbox
                   id="agreePrivacy"
                   checked={agreePrivacy}
                   onChange={(e) => setAgreePrivacy(e.target.checked)}
                   required
-                  className="mt-1"
                 />
                 <label
                   htmlFor="agreePrivacy"
@@ -172,6 +170,16 @@ function ConsentPageContent() {
             >
               {loading ? "처리 중..." : "동의하고 계속하기"}
             </Button>
+            <form action="/api/auth/signout" method="post" className="w-full">
+              <Button
+                type="submit"
+                variant="outline"
+                className="w-full"
+                disabled={loading}
+              >
+                로그아웃
+              </Button>
+            </form>
             <div className="text-xs text-center text-muted-foreground">
               동의하지 않으시면 서비스를 이용하실 수 없습니다.
             </div>
