@@ -9,7 +9,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
-      <div className="flex-1 flex items-center justify-center px-4">
+      <div className="flex-1 flex items-center justify-center px-4 pb-24">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>NCS 훈련생 성적관리 시스템</CardTitle>

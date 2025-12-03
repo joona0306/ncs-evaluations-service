@@ -66,7 +66,7 @@ export default function WaitingApprovalPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-8 pb-32">
         <Card className="w-full max-w-md">
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">로딩 중...</p>
@@ -77,7 +77,7 @@ export default function WaitingApprovalPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-8 pb-32">
       <div className="absolute top-4 right-4">
         <Link href="/dashboard/settings">
           <Button variant="outline" size="sm">

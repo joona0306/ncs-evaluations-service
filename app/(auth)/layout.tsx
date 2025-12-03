@@ -7,7 +7,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="flex-1">{children}</div>
+      <div className="flex-1 pb-24">{children}</div>
       <Footer />
     </div>
   );
