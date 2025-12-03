@@ -101,53 +101,6 @@ export function NewEvaluationForm({
     }
   }, [evaluation, searchParams]);
 
-  // URL 파라미터에서 직접 과제물 로드 (타이밍 문제 해결)
-  useEffect(() => {
-    if (!evaluation) {
-      const unitId = searchParams.get("competency_unit_id");
-      const studentId = searchParams.get("student_id");
-
-      // URL 파라미터가 있으면 즉시 과제물 로드
-      if (unitId && studentId) {
-        const loadSubmissionsFromParams = async () => {
-          try {
-            const response = await fetch(
-              `/api/submissions?competency_unit_id=${unitId}&student_id=${studentId}`
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-              const submissionsArray = Array.isArray(data)
-                ? data
-                : data?.data || [];
-
-              console.log("URL 파라미터에서 과제물 로드:", {
-                unitId,
-                studentId,
-                submissionsArray,
-                count: submissionsArray.length,
-              });
-
-              setSubmissions(submissionsArray);
-
-              // submission_id가 URL에 있으면 선택
-              const submissionId = searchParams.get("submission_id");
-              if (
-                submissionId &&
-                submissionsArray.some((s: any) => s.id === submissionId)
-              ) {
-                setSelectedSubmissionId(submissionId);
-              }
-            }
-          } catch (error: any) {
-            console.error("URL 파라미터에서 과제물 로드 실패:", error);
-          }
-        };
-
-        loadSubmissionsFromParams();
-      }
-    }
-  }, [evaluation, searchParams]);
 
   const loadSubmissions = useCallback(async () => {
     if (!selectedUnit || !selectedStudent) {
@@ -180,14 +133,37 @@ export function NewEvaluationForm({
         responseData: data,
         submissionsArray,
         count: submissionsArray.length,
+        firstSubmission: submissionsArray[0] ? {
+          id: submissionsArray[0].id,
+          submission_type: submissionsArray[0].submission_type,
+          submitted_at: submissionsArray[0].submitted_at
+        } : null
       });
-
+      
+      // state 업데이트
       setSubmissions(submissionsArray);
+      console.log("✅ setSubmissions 호출 완료:", submissionsArray.length, "개");
+      
+      // URL 파라미터에 submission_id가 있으면 선택
+      if (submissionsArray.length > 0) {
+        const submissionId = searchParams.get("submission_id");
+        if (submissionId && submissionsArray.some((s: any) => s.id === submissionId)) {
+          setSelectedSubmissionId(submissionId);
+          console.log("URL 파라미터의 submission_id 선택:", submissionId);
+        } else if (!selectedSubmissionId && submissionsArray.length > 0) {
+          // submission_id가 없으면 가장 최신 과제물 선택
+          const latest = submissionsArray.sort((a: any, b: any) => 
+            new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+          )[0];
+          setSelectedSubmissionId(latest.id);
+          console.log("가장 최신 과제물 자동 선택:", latest.id);
+        }
+      }
     } catch (error: any) {
       console.error("과제물 로드 실패:", error);
       setSubmissions([]);
     }
-  }, [selectedUnit, selectedStudent]);
+  }, [selectedUnit, selectedStudent, searchParams, selectedSubmissionId]);
 
   // URL 파라미터로 전달된 경우 초기 데이터 로드
   useEffect(() => {
@@ -224,6 +200,11 @@ export function NewEvaluationForm({
 
   useEffect(() => {
     if (selectedUnit && selectedStudent) {
+      console.log("useEffect: loadSubmissions 호출", { 
+        selectedUnit, 
+        selectedStudent, 
+        currentSubmissionsCount: submissions.length 
+      });
       loadSubmissions();
     } else {
       setSubmissions([]);

@@ -91,7 +91,19 @@ export function SubmissionSelectionSection({
 }: SubmissionSelectionSectionProps) {
   // submissions가 배열이 아닌 경우 처리
   const submissionsArray = Array.isArray(submissions) ? submissions : [];
-  
+
+  // 디버깅: submissions prop 확인
+  useEffect(() => {
+    console.log("SubmissionSelectionSection - submissions prop:", {
+      submissions,
+      submissionsArray,
+      isArray: Array.isArray(submissions),
+      length: submissionsArray.length,
+      selectedSubmissionId,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submissions, selectedSubmissionId]);
+
   // 과제물이 없어도 섹션을 표시하여 사용자에게 알림
   if (submissionsArray.length === 0) {
     return (
