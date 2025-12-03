@@ -155,47 +155,47 @@ export function AchievementCharts({
       {/* 점수 분포 파이 차트 */}
       <div className="space-y-4">
         <div>
-          <h4 className="font-semibold mb-2">점수 분포</h4>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="text-sm space-y-1">
-              <div className="flex justify-between">
-                <span>90점 이상:</span>
+          <h4 className="font-semibold mb-4">점수 분포</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div className="text-sm space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">90점 이상:</span>
                 <span className="font-medium">
                   {scoreDistribution.over90}명
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>80점 이상:</span>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">80점 이상:</span>
                 <span className="font-medium">
                   {scoreDistribution.over80}명
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>70점 이상:</span>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">70점 이상:</span>
                 <span className="font-medium">
                   {scoreDistribution.over70}명
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>60점 이상:</span>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">60점 이상:</span>
                 <span className="font-medium">
                   {scoreDistribution.over60}명
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>60점 미만:</span>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">60점 미만:</span>
                 <span className="font-medium">
                   {scoreDistribution.under60}명
                 </span>
               </div>
-              <div className="flex justify-between pt-2 border-t">
+              <div className="flex justify-between items-center pt-2 border-t mt-2">
                 <span className="font-semibold">응시 인원:</span>
                 <span className="font-semibold">
                   {scoreDistribution.total}명
                 </span>
               </div>
             </div>
-            <div className="h-48">
+            <div className="h-48 flex items-center justify-center">
               {pieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -233,19 +233,24 @@ export function AchievementCharts({
             훈련생별 점수 분포 ({students.length}명)
           </h4>
           {barData.length > 0 ? (
-            <div className="h-96">
+            <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={barData}
                   layout="vertical"
-                  margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                  margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 100]} />
+                  <XAxis 
+                    type="number" 
+                    domain={[0, 100]} 
+                    tick={{ fontSize: 12 }}
+                    tickCount={5}
+                  />
                   <YAxis
                     type="category"
                     dataKey="name"
-                    width={80}
+                    width={100}
                     tick={{ fontSize: 12 }}
                   />
                   <Tooltip content={<CustomTooltip />} />
