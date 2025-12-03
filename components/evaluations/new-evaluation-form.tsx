@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -75,6 +75,8 @@ export function NewEvaluationForm({
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string>(
     evaluation?.submission_id || ""
   );
+  // 초기 로드 시 URL 파라미터의 submission_id를 저장 (한 번만 사용)
+  const initialSubmissionIdRef = useRef<string | null>(null);
 
   // URL 파라미터에서 초기값 설정 (렌더링 후)
   useEffect(() => {
@@ -90,23 +92,31 @@ export function NewEvaluationForm({
         setSelectedStudent(studentId);
       }
       if (submissionId) {
+        // 초기 submission_id 저장 (한 번만 사용)
+        initialSubmissionIdRef.current = submissionId;
         setSelectedSubmissionId(submissionId);
       }
     } else {
       // 수정 페이지에서 URL 파라미터로 submission_id가 전달된 경우
       const submissionId = searchParams.get("submission_id");
       if (submissionId) {
+        initialSubmissionIdRef.current = submissionId;
         setSelectedSubmissionId(submissionId);
       }
     }
   }, [evaluation, searchParams]);
 
-
   const loadSubmissions = useCallback(async () => {
     if (!selectedUnit || !selectedStudent) {
+      console.log("loadSubmissions: selectedUnit 또는 selectedStudent가 없음", {
+        selectedUnit,
+        selectedStudent,
+      });
       setSubmissions([]);
       return;
     }
+
+    console.log("loadSubmissions 시작:", { selectedUnit, selectedStudent });
 
     try {
       const response = await fetch(
@@ -133,37 +143,63 @@ export function NewEvaluationForm({
         responseData: data,
         submissionsArray,
         count: submissionsArray.length,
-        firstSubmission: submissionsArray[0] ? {
-          id: submissionsArray[0].id,
-          submission_type: submissionsArray[0].submission_type,
-          submitted_at: submissionsArray[0].submitted_at
-        } : null
+        firstSubmission: submissionsArray[0]
+          ? {
+              id: submissionsArray[0].id,
+              submission_type: submissionsArray[0].submission_type,
+              submitted_at: submissionsArray[0].submitted_at,
+            }
+          : null,
       });
-      
+
       // state 업데이트
       setSubmissions(submissionsArray);
-      console.log("✅ setSubmissions 호출 완료:", submissionsArray.length, "개");
-      
-      // URL 파라미터에 submission_id가 있으면 선택
+      console.log(
+        "✅ setSubmissions 호출 완료:",
+        submissionsArray.length,
+        "개"
+      );
+
+      // 초기 로드 시 URL 파라미터의 submission_id가 있으면 선택
       if (submissionsArray.length > 0) {
-        const submissionId = searchParams.get("submission_id");
-        if (submissionId && submissionsArray.some((s: any) => s.id === submissionId)) {
-          setSelectedSubmissionId(submissionId);
-          console.log("URL 파라미터의 submission_id 선택:", submissionId);
-        } else if (!selectedSubmissionId && submissionsArray.length > 0) {
+        const submissionIdFromInitial = initialSubmissionIdRef.current;
+        if (
+          submissionIdFromInitial &&
+          submissionsArray.some((s: any) => s.id === submissionIdFromInitial)
+        ) {
+          // 초기 submission_id가 있으면 선택
+          setSelectedSubmissionId(submissionIdFromInitial);
+          console.log(
+            "초기 URL 파라미터의 submission_id 선택:",
+            submissionIdFromInitial
+          );
+          // 한 번 사용했으면 null로 설정하여 재사용 방지
+          initialSubmissionIdRef.current = null;
+        } else {
           // submission_id가 없으면 가장 최신 과제물 선택
-          const latest = submissionsArray.sort((a: any, b: any) => 
-            new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
-          )[0];
-          setSelectedSubmissionId(latest.id);
-          console.log("가장 최신 과제물 자동 선택:", latest.id);
+          // setSelectedSubmissionId를 함수형 업데이트로 사용하여 현재 값을 확인
+          setSelectedSubmissionId((currentId) => {
+            if (
+              !currentId ||
+              !submissionsArray.some((s: any) => s.id === currentId)
+            ) {
+              const latest = submissionsArray.sort(
+                (a: any, b: any) =>
+                  new Date(b.submitted_at).getTime() -
+                  new Date(a.submitted_at).getTime()
+              )[0];
+              console.log("가장 최신 과제물 자동 선택:", latest.id);
+              return latest.id;
+            }
+            return currentId;
+          });
         }
       }
     } catch (error: any) {
       console.error("과제물 로드 실패:", error);
       setSubmissions([]);
     }
-  }, [selectedUnit, selectedStudent, searchParams, selectedSubmissionId]);
+  }, [selectedUnit, selectedStudent]);
 
   // URL 파라미터로 전달된 경우 초기 데이터 로드
   useEffect(() => {
@@ -198,19 +234,21 @@ export function NewEvaluationForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnit]);
 
+  // selectedUnit과 selectedStudent가 변경될 때만 과제물 로드
   useEffect(() => {
     if (selectedUnit && selectedStudent) {
-      console.log("useEffect: loadSubmissions 호출", { 
-        selectedUnit, 
-        selectedStudent, 
-        currentSubmissionsCount: submissions.length 
+      console.log("useEffect: loadSubmissions 호출", {
+        selectedUnit,
+        selectedStudent,
+        currentSubmissionsCount: submissions.length,
       });
       loadSubmissions();
     } else {
       setSubmissions([]);
       setSelectedSubmissionId("");
     }
-  }, [selectedUnit, selectedStudent, loadSubmissions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedUnit, selectedStudent]);
 
   const loadEvaluationData = useCallback(async () => {
     if (!evaluation) return;
