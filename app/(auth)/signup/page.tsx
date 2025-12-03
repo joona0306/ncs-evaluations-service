@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { Settings } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -32,6 +33,8 @@ export default function SignupPage() {
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
   const router = useRouter();
 
   // 쿨다운 타이머
@@ -134,6 +137,17 @@ export default function SignupPage() {
     // 이메일 중복 확인
     if (emailError) {
       setError("이미 가입된 계정입니다. 로그인 페이지로 이동하세요.");
+      return;
+    }
+
+    // 필수 동의 확인
+    if (!agreeTerms) {
+      setError("이용약관에 동의해주세요.");
+      return;
+    }
+
+    if (!agreePrivacy) {
+      setError("개인정보처리방침에 동의해주세요.");
       return;
     }
 
@@ -257,6 +271,9 @@ export default function SignupPage() {
                 full_name: fullName,
                 phone,
                 role,
+                agreed_terms: agreeTerms,
+                agreed_privacy: agreePrivacy,
+                agreed_marketing: false, // 현재 마케팅 서비스 없음
               }),
             });
 
@@ -534,6 +551,60 @@ export default function SignupPage() {
                 관리자 계정은 별도로 생성됩니다.
               </p>
             </div>
+
+            {/* 동의 섹션 */}
+            <div className="space-y-3 pt-4 border-t">
+              <div className="space-y-3">
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="agreeTerms"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    required
+                    className="mt-1"
+                  />
+                  <label
+                    htmlFor="agreeTerms"
+                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
+                  >
+                    <span className="text-red-500">[필수]</span>{" "}
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      className="text-primary hover:underline"
+                    >
+                      이용약관
+                    </Link>
+                    에 동의합니다.
+                  </label>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="agreePrivacy"
+                    checked={agreePrivacy}
+                    onChange={(e) => setAgreePrivacy(e.target.checked)}
+                    required
+                    className="mt-1"
+                  />
+                  <label
+                    htmlFor="agreePrivacy"
+                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
+                  >
+                    <span className="text-red-500">[필수]</span>{" "}
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      className="text-primary hover:underline"
+                    >
+                      개인정보처리방침
+                    </Link>
+                    에 동의합니다.
+                  </label>
+                </div>
+
+              </div>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button
@@ -545,7 +616,9 @@ export default function SignupPage() {
                 !!emailError ||
                 !!passwordError ||
                 !emailVerified ||
-                checkingEmail
+                checkingEmail ||
+                !agreeTerms ||
+                !agreePrivacy
               }
             >
               {loading

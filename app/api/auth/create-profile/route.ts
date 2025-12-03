@@ -15,7 +15,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, full_name, phone, role } = await request.json();
+    const { 
+      email, 
+      full_name, 
+      phone, 
+      role,
+      agreed_terms,
+      agreed_privacy,
+      agreed_marketing 
+    } = await request.json();
 
     // 프로필 확인 (에러가 발생해도 계속 진행)
     const { data: existingProfile } = await supabase
@@ -43,6 +51,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // 동의 정보 준비
+    const now = new Date().toISOString();
+    const agreedTermsAt = agreed_terms ? now : null;
+    const agreedPrivacyAt = agreed_privacy ? now : null;
+    // 마케팅 동의는 현재 서비스가 없으므로 항상 false
+    const agreedMarketing = false;
+    const agreedMarketingAt = null;
+
     const { data: profile, error: insertError } = await supabase
       .from("profiles")
       .insert({
@@ -51,6 +67,10 @@ export async function POST(request: Request) {
         full_name: full_name || "",
         phone: phone || null,
         role: profileRole,
+        agreed_terms_at: agreedTermsAt,
+        agreed_privacy_at: agreedPrivacyAt,
+        agreed_marketing: agreedMarketing,
+        agreed_marketing_at: agreedMarketingAt,
       })
       .select()
       .single();

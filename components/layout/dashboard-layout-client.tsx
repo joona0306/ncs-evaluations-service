@@ -8,6 +8,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Profile } from "@/types/common";
 import { createClient } from "@/lib/supabase/client";
 import { Settings } from "lucide-react";
+import { Footer } from "./footer";
 
 interface DashboardLayoutClientProps {
   children: React.ReactNode;
@@ -106,9 +107,10 @@ export function DashboardLayoutClient({
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
         <DashboardHeader />
-        <div>{children}</div>
+        <div className="flex-1">{children}</div>
+        <Footer />
       </div>
     </AuthProvider>
   );

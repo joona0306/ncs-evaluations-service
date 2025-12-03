@@ -14,6 +14,10 @@ export interface Profile {
   role: UserRole;
   phone: string | null;
   approved?: boolean;
+  agreed_terms_at?: string | null;
+  agreed_privacy_at?: string | null;
+  agreed_marketing?: boolean;
+  agreed_marketing_at?: string | null;
   created_at: string;
   updated_at: string;
 }
