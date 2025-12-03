@@ -22,7 +22,7 @@ export default function EditEvaluationPageClient() {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -91,9 +91,7 @@ export default function EditEvaluationPageClient() {
         <BackButton href={`/dashboard/evaluations/${params.id}`} />
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
-          <p className="text-muted-foreground mb-4">
-            평가 정보를 수정합니다
-          </p>
+          <p className="text-muted-foreground mb-4">평가 정보를 수정합니다</p>
           <EvaluationTabs />
         </div>
         <CardSkeleton count={3} />
@@ -107,9 +105,7 @@ export default function EditEvaluationPageClient() {
         <BackButton href={`/dashboard/evaluations/${params.id}`} />
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
-          <p className="text-muted-foreground mb-4">
-            평가 정보를 수정합니다
-          </p>
+          <p className="text-muted-foreground mb-4">평가 정보를 수정합니다</p>
           <EvaluationTabs />
         </div>
         <p className="text-red-600">{error || "평가를 찾을 수 없습니다."}</p>
@@ -121,14 +117,27 @@ export default function EditEvaluationPageClient() {
     return null;
   }
 
+  // courses와 evaluation이 모두 준비되었을 때만 폼 렌더링
+  if (!evaluation || courses.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <BackButton href={`/dashboard/evaluations/${params.id}`} />
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
+          <p className="text-muted-foreground mb-4">평가 정보를 수정합니다</p>
+          <EvaluationTabs />
+        </div>
+        <CardSkeleton count={3} />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <BackButton href={`/dashboard/evaluations/${params.id}`} />
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2">평가 수정</h2>
-        <p className="text-muted-foreground mb-4">
-          평가 정보를 수정합니다
-        </p>
+        <p className="text-muted-foreground mb-4">평가 정보를 수정합니다</p>
         <EvaluationTabs />
       </div>
       <NewEvaluationForm
@@ -139,4 +148,3 @@ export default function EditEvaluationPageClient() {
     </div>
   );
 }
-
