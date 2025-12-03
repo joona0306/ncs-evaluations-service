@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   PieChart,
   Pie,
@@ -53,10 +53,45 @@ export function AchievementCharts({
 }: AchievementChartsProps) {
   // 클라이언트 사이드에서만 렌더링 (SSR hydration 문제 방지)
   const [mounted, setMounted] = useState(false);
+  const [pieChartSize, setPieChartSize] = useState({ width: 0, height: 192 });
+  const [barChartSize, setBarChartSize] = useState({ width: 0, height: 400 });
+  const pieChartRef = useRef<HTMLDivElement>(null);
+  const barChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // 컨테이너 크기 측정
+  useEffect(() => {
+    if (!mounted) return;
+
+    const updateSizes = () => {
+      if (pieChartRef.current) {
+        const { width, height } = pieChartRef.current.getBoundingClientRect();
+        if (width > 0 && height > 0) {
+          setPieChartSize({ width, height });
+        }
+      }
+      if (barChartRef.current) {
+        const { width, height } = barChartRef.current.getBoundingClientRect();
+        if (width > 0 && height > 0) {
+          setBarChartSize({ width, height });
+        }
+      }
+    };
+
+    updateSizes();
+    window.addEventListener("resize", updateSizes);
+
+    // 약간의 지연 후 다시 측정 (레이아웃 완료 후)
+    const timeout = setTimeout(updateSizes, 100);
+
+    return () => {
+      window.removeEventListener("resize", updateSizes);
+      clearTimeout(timeout);
+    };
+  }, [mounted]);
 
   // 파이 차트 데이터
   const pieData = [
@@ -167,32 +202,48 @@ export function AchievementCharts({
               <div className="text-sm space-y-1.5">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">90점 이상:</span>
-                  <span className="font-medium">{scoreDistribution.over90}명</span>
+                  <span className="font-medium">
+                    {scoreDistribution.over90}명
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">80점 이상:</span>
-                  <span className="font-medium">{scoreDistribution.over80}명</span>
+                  <span className="font-medium">
+                    {scoreDistribution.over80}명
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">70점 이상:</span>
-                  <span className="font-medium">{scoreDistribution.over70}명</span>
+                  <span className="font-medium">
+                    {scoreDistribution.over70}명
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">60점 이상:</span>
-                  <span className="font-medium">{scoreDistribution.over60}명</span>
+                  <span className="font-medium">
+                    {scoreDistribution.over60}명
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">60점 미만:</span>
-                  <span className="font-medium">{scoreDistribution.under60}명</span>
+                  <span className="font-medium">
+                    {scoreDistribution.under60}명
+                  </span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t mt-2">
                   <span className="font-semibold">응시 인원:</span>
-                  <span className="font-semibold">{scoreDistribution.total}명</span>
+                  <span className="font-semibold">
+                    {scoreDistribution.total}명
+                  </span>
                 </div>
               </div>
-              <div 
+              <div
                 className="w-full flex items-center justify-center"
-                style={{ height: "192px", minHeight: "192px", position: "relative" }}
+                style={{
+                  height: "192px",
+                  minHeight: "192px",
+                  position: "relative",
+                }}
               >
                 <div className="text-muted-foreground">로딩 중...</div>
               </div>
@@ -202,9 +253,13 @@ export function AchievementCharts({
             <h4 className="font-semibold mb-4">
               훈련생별 점수 분포 ({students.length}명)
             </h4>
-            <div 
+            <div
               className="w-full flex items-center justify-center"
-              style={{ height: "400px", minHeight: "400px", position: "relative" }}
+              style={{
+                height: "400px",
+                minHeight: "400px",
+                position: "relative",
+              }}
             >
               <div className="text-muted-foreground">로딩 중...</div>
             </div>
@@ -267,12 +322,22 @@ export function AchievementCharts({
                 </span>
               </div>
             </div>
-            <div 
+            <div
+              ref={pieChartRef}
               className="w-full"
-              style={{ height: "192px", minHeight: "192px", position: "relative" }}
+              style={{
+                height: "192px",
+                minHeight: "192px",
+                position: "relative",
+              }}
             >
-              {pieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" minHeight={192} minWidth={0}>
+              {pieData.length > 0 && pieChartSize.width > 0 ? (
+                <ResponsiveContainer
+                  width={pieChartSize.width || "100%"}
+                  height={pieChartSize.height || 192}
+                  minHeight={192}
+                  minWidth={0}
+                >
                   <PieChart>
                     <Pie
                       data={pieData}
@@ -293,6 +358,10 @@ export function AchievementCharts({
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
+              ) : pieData.length > 0 ? (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  로딩 중...
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   평가 데이터가 없습니다
@@ -308,44 +377,60 @@ export function AchievementCharts({
             훈련생별 점수 분포 ({students.length}명)
           </h4>
           {barData.length > 0 ? (
-            <div 
+            <div
+              ref={barChartRef}
               className="w-full"
-              style={{ height: "400px", minHeight: "400px", position: "relative" }}
+              style={{
+                height: "400px",
+                minHeight: "400px",
+                position: "relative",
+              }}
             >
-              <ResponsiveContainer width="100%" height="100%" minHeight={400} minWidth={0}>
-                <BarChart
-                  data={barData}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+              {barChartSize.width > 0 ? (
+                <ResponsiveContainer
+                  width={barChartSize.width || "100%"}
+                  height={barChartSize.height || 400}
+                  minHeight={400}
+                  minWidth={0}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    type="number" 
-                    domain={[0, 100]} 
-                    tick={{ fontSize: 12 }}
-                    tickCount={5}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={100}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="score" fill="#3b82f6" radius={[0, 4, 4, 0]}>
-                    {barData.map((entry, index) => {
-                      const score = entry.score;
-                      let color = COLORS.under60;
-                      if (score >= 90) color = COLORS.over90;
-                      else if (score >= 80) color = COLORS.over80;
-                      else if (score >= 70) color = COLORS.over70;
-                      else if (score >= 60) color = COLORS.over60;
+                  <BarChart
+                    data={barData}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      type="number"
+                      domain={[0, 100]}
+                      tick={{ fontSize: 12 }}
+                      tickCount={5}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={100}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="score" fill="#3b82f6" radius={[0, 4, 4, 0]}>
+                      {barData.map((entry, index) => {
+                        const score = entry.score;
+                        let color = COLORS.under60;
+                        if (score >= 90) color = COLORS.over90;
+                        else if (score >= 80) color = COLORS.over80;
+                        else if (score >= 70) color = COLORS.over70;
+                        else if (score >= 60) color = COLORS.over60;
 
-                      return <Cell key={`cell-${index}`} fill={color} />;
-                    })}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                        return <Cell key={`cell-${index}`} fill={color} />;
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  로딩 중...
+                </div>
+              )}
             </div>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
