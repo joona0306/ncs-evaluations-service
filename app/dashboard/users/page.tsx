@@ -3,11 +3,17 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
 import dynamicImport from "next/dynamic";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // UsersList를 동적 임포트로 지연 로딩 (코드 스플리팅)
 const UsersList = dynamicImport(
@@ -21,7 +27,6 @@ const UsersList = dynamicImport(
         사용자 목록 로딩 중...
       </div>
     ),
-    ssr: false, // 클라이언트 사이드에서만 렌더링
   }
 );
 
@@ -45,8 +50,6 @@ export default async function UsersPage() {
       </div>
 
       <UsersList initialUsers={users || []} />
-
     </div>
   );
 }
-

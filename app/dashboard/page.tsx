@@ -26,7 +26,6 @@ const AchievementOverviewLazy = dynamicImport(
     loading: () => (
       <div className="p-4 text-center text-muted-foreground">로딩 중...</div>
     ),
-    ssr: false, // 클라이언트 사이드에서만 렌더링
   }
 );
 

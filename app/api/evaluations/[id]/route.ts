@@ -4,20 +4,22 @@ import { getCurrentUserProfile } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     const { data, error } = await supabase
       .from("evaluations")
-      .select(`
+      .select(
+        `
         id,
         competency_unit_id,
         student_id,
@@ -52,20 +54,21 @@ export async function GET(
           full_name,
           email
         )
-      `)
-      .eq("id", params.id)
+      `
+      )
+      .eq("id", id)
       .single();
 
     if (error) {
       console.error("평가 조회 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     if (!data) {
-      return NextResponse.json({ error: "Evaluation not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Evaluation not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(data);
@@ -80,43 +83,41 @@ export async function GET(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     // 평가 소유자 확인
     const { data: evaluation } = await supabase
       .from("evaluations")
       .select("teacher_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!evaluation) {
-      return NextResponse.json({ error: "Evaluation not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Evaluation not found" },
+        { status: 404 }
+      );
     }
 
     if (profile.role === "teacher" && evaluation.teacher_id !== profile.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { error } = await supabase
-      .from("evaluations")
-      .delete()
-      .eq("id", params.id);
+    const { error } = await supabase.from("evaluations").delete().eq("id", id);
 
     if (error) {
       console.error("평가 삭제 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

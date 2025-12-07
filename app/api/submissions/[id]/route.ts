@@ -4,7 +4,7 @@ import { getCurrentUserProfile } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
@@ -13,6 +13,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -44,7 +45,7 @@ export async function GET(
         )
       `
       )
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (error) {
@@ -76,7 +77,7 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
@@ -85,6 +86,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { submission_type, file_url, url, file_name, file_size, comments } =
       body;
@@ -97,7 +99,7 @@ export async function PATCH(
       .select(
         "id, student_id, evaluation_schedule_id, evaluation_schedules(status)"
       )
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!existing) {
@@ -149,7 +151,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("submissions")
       .update(updateData)
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -170,7 +172,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
@@ -179,13 +181,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     // 기존 제출 조회
     const { data: existing } = await supabase
       .from("submissions")
       .select("id, student_id, file_url")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!existing) {
@@ -221,13 +224,13 @@ export async function DELETE(
     const { data: deletedData, error } = await supabase
       .from("submissions")
       .delete()
-      .eq("id", params.id)
+      .eq("id", id)
       .select();
 
     if (error) {
       console.error("과제물 삭제 오류:", error);
       console.error("삭제 실패 상세:", {
-        submissionId: params.id,
+        submissionId: id,
         studentId: profile.id,
         error: error.message,
         code: error.code,
@@ -246,7 +249,7 @@ export async function DELETE(
 
     // 삭제된 레코드 확인
     if (!deletedData || deletedData.length === 0) {
-      console.warn("삭제된 레코드가 없음:", params.id);
+      console.warn("삭제된 레코드가 없음:", id);
       return NextResponse.json(
         { error: "삭제할 레코드를 찾을 수 없습니다." },
         { status: 404 }

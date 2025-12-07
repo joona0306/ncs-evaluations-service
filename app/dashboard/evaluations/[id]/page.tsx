@@ -21,7 +21,6 @@ const NewEvaluationDetail = dynamic(
         평가 상세 로딩 중...
       </div>
     ),
-    ssr: false, // 클라이언트 사이드에서만 렌더링
   }
 );
 
@@ -102,13 +101,17 @@ export default async function EvaluationDetailPage({
   const canEdit =
     profile.role === "admin" ||
     (profile.role === "teacher" && evaluation.teacher_id === profile.id);
-  
+
   // 훈련생인지 확인
   const isStudent = profile.role === "student";
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <BackButton href={isStudent ? "/dashboard/my-evaluations" : "/dashboard/evaluations"} />
+      <BackButton
+        href={
+          isStudent ? "/dashboard/my-evaluations" : "/dashboard/evaluations"
+        }
+      />
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <div>
