@@ -4,7 +4,7 @@ import { getCurrentUserProfile } from "@/lib/auth";
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
@@ -13,13 +13,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     // 서명 소유자 확인
     const { data: signature } = await supabase
       .from("signatures")
       .select("signer_id, evaluation_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!signature) {
@@ -35,7 +36,7 @@ export async function DELETE(
     }
 
     console.log("서명 삭제 시작:", {
-      id: params.id,
+      id: id,
       signerId: signature.signer_id,
       profileId: profile.id,
       isAdmin: profile.role === "admin",
@@ -44,7 +45,7 @@ export async function DELETE(
     const { error, count } = await supabase
       .from("signatures")
       .delete()
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (error) {
       console.error("서명 삭제 오류:", error);
@@ -52,11 +53,14 @@ export async function DELETE(
     }
 
     console.log("서명 삭제 완료:", {
-      id: params.id,
+      id: id,
       deleted: count !== null && count > 0,
     });
 
-    return NextResponse.json({ success: true, deleted: count !== null && count > 0 });
+    return NextResponse.json({
+      success: true,
+      deleted: count !== null && count > 0,
+    });
   } catch (error: any) {
     console.error("서명 삭제 실패:", error);
     return NextResponse.json(
@@ -68,7 +72,7 @@ export async function DELETE(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
@@ -77,13 +81,14 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     // 서명 소유자 확인
     const { data: signature } = await supabase
       .from("signatures")
       .select("signer_id, evaluation_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!signature) {
@@ -109,7 +114,7 @@ export async function PUT(
     }
 
     console.log("서명 업데이트 시작:", {
-      id: params.id,
+      id: id,
       signerId: signature.signer_id,
       profileId: profile.id,
       signatureDataLength: signature_data?.length || 0,
@@ -119,7 +124,7 @@ export async function PUT(
     const { data: beforeUpdate, error: beforeError } = await supabase
       .from("signatures")
       .select("signature_data, updated_at")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (beforeError) {
@@ -132,14 +137,18 @@ export async function PUT(
     }
 
     // 업데이트 수행
-    const { data: updateResult, error: updateError, count } = await supabase
+    const {
+      data: updateResult,
+      error: updateError,
+      count,
+    } = await supabase
       .from("signatures")
       .update({
         signature_data,
         signature_type,
         signed_at: new Date().toISOString(),
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select();
 
     console.log("업데이트 결과:", {
@@ -150,16 +159,14 @@ export async function PUT(
 
     if (updateError) {
       console.error("서명 수정 오류:", updateError);
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
     // 업데이트된 데이터 조회 (관계 데이터 포함)
     const { data, error: selectError } = await supabase
       .from("signatures")
-      .select(`
+      .select(
+        `
         *,
         signer:profiles!signatures_signer_id_fkey(
           id,
@@ -167,20 +174,18 @@ export async function PUT(
           email,
           role
         )
-      `)
-      .eq("id", params.id)
+      `
+      )
+      .eq("id", id)
       .single();
 
     if (selectError) {
       console.error("서명 조회 오류:", selectError);
-      return NextResponse.json(
-        { error: selectError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: selectError.message }, { status: 500 });
     }
 
     if (!data) {
-      console.error("서명 조회 결과 없음:", { id: params.id });
+      console.error("서명 조회 결과 없음:", { id: id });
       return NextResponse.json(
         { error: "서명을 찾을 수 없습니다." },
         { status: 404 }
@@ -190,7 +195,7 @@ export async function PUT(
     // 업데이트 확인 로깅
     const isUpdated = data.signature_data !== beforeUpdate?.signature_data;
     console.log("서명 업데이트 확인:", {
-      id: params.id,
+      id: id,
       updated: isUpdated,
       beforeLength: beforeUpdate?.signature_data?.length || 0,
       afterLength: data.signature_data?.length || 0,

@@ -5,25 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { EvaluationTabs } from "@/components/evaluations/evaluation-tabs";
-import dynamic from "next/dynamic";
 import { EvaluationDeleteButton } from "@/components/evaluations/evaluation-delete-button";
 import { CardSkeleton } from "@/components/ui/skeleton";
-
-// NewEvaluationDetail을 동적 임포트로 지연 로딩 (코드 스플리팅)
-const NewEvaluationDetail = dynamic(
-  () =>
-    import("@/components/evaluations/new-evaluation-detail").then((mod) => ({
-      default: mod.NewEvaluationDetail,
-    })),
-  {
-    loading: () => (
-      <div className="p-4 text-center text-muted-foreground">
-        평가 상세 로딩 중...
-      </div>
-    ),
-    ssr: false, // 클라이언트 사이드에서만 렌더링
-  }
-);
+import { NewEvaluationDetailClient } from "@/components/evaluations/new-evaluation-detail-client";
 
 // 캐싱 전략: 30초마다 재검증
 export const revalidate = 30;
@@ -102,13 +86,17 @@ export default async function EvaluationDetailPage({
   const canEdit =
     profile.role === "admin" ||
     (profile.role === "teacher" && evaluation.teacher_id === profile.id);
-  
+
   // 훈련생인지 확인
   const isStudent = profile.role === "student";
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <BackButton href={isStudent ? "/dashboard/my-evaluations" : "/dashboard/evaluations"} />
+      <BackButton
+        href={
+          isStudent ? "/dashboard/my-evaluations" : "/dashboard/evaluations"
+        }
+      />
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -138,7 +126,7 @@ export default async function EvaluationDetailPage({
         {!isStudent && <EvaluationTabs alignRight />}
       </div>
 
-      <NewEvaluationDetail evaluation={evaluation} />
+      <NewEvaluationDetailClient evaluation={evaluation} />
     </div>
   );
 }

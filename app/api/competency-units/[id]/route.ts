@@ -4,29 +4,27 @@ import { getCurrentUserProfile } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     const { data, error } = await supabase
       .from("competency_units")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (error) {
       console.error("능력단위 조회 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     if (!data) {
@@ -48,15 +46,16 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { name, code, description, evaluation_criteria } = body;
 
@@ -70,16 +69,13 @@ export async function PATCH(
         description: description || null,
         evaluation_criteria: evaluation_criteria || {},
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
     if (error) {
       console.error("능력단위 수정 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data);
@@ -94,28 +90,26 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     const { error } = await supabase
       .from("competency_units")
       .delete()
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (error) {
       console.error("능력단위 삭제 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
@@ -127,4 +121,3 @@ export async function DELETE(
     );
   }
 }
-

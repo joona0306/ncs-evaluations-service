@@ -11,24 +11,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateProfileButton } from "@/components/profile/create-profile-button";
-import dynamicImport from "next/dynamic";
+import { AchievementOverviewClient } from "@/components/admin/achievement-overview-client";
 
 // 캐싱 전략: 1분마다 재검증
 export const revalidate = 60;
-
-// AchievementOverview를 동적 임포트로 지연 로딩 (코드 스플리팅)
-const AchievementOverviewLazy = dynamicImport(
-  () =>
-    import("@/components/admin/achievement-overview").then((mod) => ({
-      default: mod.AchievementOverview,
-    })),
-  {
-    loading: () => (
-      <div className="p-4 text-center text-muted-foreground">로딩 중...</div>
-    ),
-    ssr: false, // 클라이언트 사이드에서만 렌더링
-  }
-);
 
 export default async function DashboardPage() {
   // 미들웨어에서 인증 확인 완료, 프로필만 조회
@@ -281,7 +267,7 @@ export default async function DashboardPage() {
               <CardTitle>과정별 학업 성취도</CardTitle>
             </CardHeader>
             <CardContent>
-              <AchievementOverviewLazy />
+              <AchievementOverviewClient />
             </CardContent>
           </Card>
         </div>

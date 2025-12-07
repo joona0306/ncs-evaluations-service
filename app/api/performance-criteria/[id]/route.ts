@@ -11,17 +11,19 @@ const DIFFICULTY_SCORE_OPTIONS: Record<string, number[]> = {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
-    const { name, code, difficulty, max_score, description, display_order } = body;
+    const { name, code, difficulty, max_score, description, display_order } =
+      body;
 
     const supabase = await createClient();
 
@@ -29,7 +31,7 @@ export async function PATCH(
     const { data: existing } = await supabase
       .from("performance_criteria")
       .select("difficulty, max_score")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!existing) {
@@ -40,8 +42,10 @@ export async function PATCH(
     }
 
     // 최종 난이도와 만점 결정
-    const finalDifficulty = difficulty !== undefined ? difficulty : existing.difficulty;
-    let finalMaxScore = max_score !== undefined ? max_score : existing.max_score;
+    const finalDifficulty =
+      difficulty !== undefined ? difficulty : existing.difficulty;
+    let finalMaxScore =
+      max_score !== undefined ? max_score : existing.max_score;
 
     // 난이도와 만점 일치 여부 검증 및 자동 조정
     const validScores = DIFFICULTY_SCORE_OPTIONS[finalDifficulty];
@@ -71,16 +75,13 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("performance_criteria")
       .update(updateData)
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
     if (error) {
       console.error("수행준거 수정 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data);
@@ -95,28 +96,26 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     const { error } = await supabase
       .from("performance_criteria")
       .delete()
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (error) {
       console.error("수행준거 삭제 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
@@ -128,4 +127,3 @@ export async function DELETE(
     );
   }
 }
-

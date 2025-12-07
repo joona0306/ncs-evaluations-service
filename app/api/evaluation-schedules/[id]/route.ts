@@ -4,15 +4,16 @@ import { getCurrentUserProfile } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -38,15 +39,12 @@ export async function GET(
         )
       `
       )
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (error) {
       console.error("평가일정 조회 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     if (!data) {
@@ -68,15 +66,16 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { title, description, start_date, end_date, status } = body;
 
@@ -86,7 +85,7 @@ export async function PATCH(
     const { data: existing } = await supabase
       .from("evaluation_schedules")
       .select("competency_unit_id, competency_units(id, course_id)")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!existing) {
@@ -98,8 +97,8 @@ export async function PATCH(
 
     // 교사는 자신이 담당하는 과정의 평가일정만 수정 가능
     if (profile.role === "teacher") {
-      const competencyUnit = Array.isArray(existing.competency_units) 
-        ? existing.competency_units[0] 
+      const competencyUnit = Array.isArray(existing.competency_units)
+        ? existing.competency_units[0]
         : existing.competency_units;
       const courseId = competencyUnit?.course_id;
       if (courseId) {
@@ -132,16 +131,13 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("evaluation_schedules")
       .update(updateData)
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
     if (error) {
       console.error("평가일정 수정 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data);
@@ -156,22 +152,23 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const profile = await getCurrentUserProfile();
-    
+
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const supabase = await createClient();
 
     // 기존 평가일정 조회
     const { data: existing } = await supabase
       .from("evaluation_schedules")
       .select("competency_unit_id, competency_units(id, course_id)")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!existing) {
@@ -183,8 +180,8 @@ export async function DELETE(
 
     // 교사는 자신이 담당하는 과정의 평가일정만 삭제 가능
     if (profile.role === "teacher") {
-      const competencyUnit = Array.isArray(existing.competency_units) 
-        ? existing.competency_units[0] 
+      const competencyUnit = Array.isArray(existing.competency_units)
+        ? existing.competency_units[0]
         : existing.competency_units;
       const courseId = competencyUnit?.course_id;
       if (courseId) {
@@ -207,14 +204,11 @@ export async function DELETE(
     const { error } = await supabase
       .from("evaluation_schedules")
       .delete()
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (error) {
       console.error("평가일정 삭제 오류:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
@@ -226,4 +220,3 @@ export async function DELETE(
     );
   }
 }
-
