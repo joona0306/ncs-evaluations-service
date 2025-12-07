@@ -11,24 +11,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
-import dynamicImport from "next/dynamic";
+import { UsersListClient } from "@/components/users/users-list-client";
 
 export const dynamic = "force-dynamic";
-
-// UsersList를 동적 임포트로 지연 로딩 (코드 스플리팅)
-const UsersList = dynamicImport(
-  () =>
-    import("@/components/users/users-list").then((mod) => ({
-      default: mod.UsersList,
-    })),
-  {
-    loading: () => (
-      <div className="p-4 text-center text-muted-foreground">
-        사용자 목록 로딩 중...
-      </div>
-    ),
-  }
-);
 
 export default async function UsersPage() {
   await requireAdmin();
@@ -49,7 +34,7 @@ export default async function UsersPage() {
         </p>
       </div>
 
-      <UsersList initialUsers={users || []} />
+      <UsersListClient initialUsers={users || []} />
     </div>
   );
 }
