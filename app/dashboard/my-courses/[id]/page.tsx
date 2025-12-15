@@ -14,8 +14,9 @@ import { CompetencyUnitsView } from "@/components/courses/competency-units-view"
 export default async function MyCourseDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const profile = await getCurrentUserProfile();
 
   if (!profile) {
@@ -23,7 +24,7 @@ export default async function MyCourseDetailPage({
   }
 
   if (profile.role === "admin") {
-    redirect(`/dashboard/courses/${params.id}`);
+    redirect(`/dashboard/courses/${id}`);
   }
 
   const supabase = await createClient();
@@ -41,7 +42,7 @@ export default async function MyCourseDetailPage({
       `
       )
       .eq("student_id", profile.id)
-      .eq("course_id", params.id)
+      .eq("course_id", id)
       .eq("status", "active")
       .maybeSingle();
 
@@ -63,7 +64,7 @@ export default async function MyCourseDetailPage({
       `
       )
       .eq("teacher_id", profile.id)
-      .eq("course_id", params.id)
+      .eq("course_id", id)
       .maybeSingle();
 
     if (courseTeacher) {
@@ -85,7 +86,7 @@ export default async function MyCourseDetailPage({
   const { data: competencyUnits } = await supabase
     .from("competency_units")
     .select("id, name, code, description")
-    .eq("course_id", params.id)
+    .eq("course_id", id)
     .order("code", { ascending: true });
 
   return (
@@ -134,7 +135,7 @@ export default async function MyCourseDetailPage({
           </CardHeader>
           <CardContent>
             <CompetencyUnitsView
-              courseId={params.id}
+              courseId={id}
               competencyUnits={competencyUnits || []}
             />
           </CardContent>

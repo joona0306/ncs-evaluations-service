@@ -8,15 +8,16 @@ import { CompetencyUnitForm } from "@/components/courses/competency-unit-form";
 export default async function NewCompetencyUnitPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   await requireAdmin();
   const supabase = await createClient();
 
   const { data: course } = await supabase
     .from("training_courses")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (!course) {
@@ -25,9 +26,9 @@ export default async function NewCompetencyUnitPage({
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <BackButton href={`/dashboard/courses/${params.id}`} />
+      <BackButton href={`/dashboard/courses/${id}`} />
       <h2 className="text-3xl font-bold mb-8">새 능력단위 생성</h2>
-      <CompetencyUnitForm courseId={params.id} />
+      <CompetencyUnitForm courseId={id} />
     </div>
   );
 }

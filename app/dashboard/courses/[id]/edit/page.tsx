@@ -8,7 +8,7 @@ import { CourseForm } from "@/components/courses/course-form";
 export default async function EditCoursePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   try {
     await requireAdmin();
@@ -17,12 +17,13 @@ export default async function EditCoursePage({
     redirect("/dashboard");
   }
 
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data: course, error } = await supabase
     .from("training_courses")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error) {
@@ -34,13 +35,13 @@ export default async function EditCoursePage({
   }
 
   if (!course) {
-    console.error("훈련과정을 찾을 수 없습니다. ID:", params.id);
+    console.error("훈련과정을 찾을 수 없습니다. ID:", id);
     redirect("/dashboard/courses");
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <BackButton href={`/dashboard/courses/${params.id}`} />
+      <BackButton href={`/dashboard/courses/${id}`} />
       <h2 className="text-3xl font-bold mb-8">훈련과정 수정</h2>
       <CourseForm course={course} />
     </div>

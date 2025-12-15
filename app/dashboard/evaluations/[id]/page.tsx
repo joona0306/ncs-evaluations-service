@@ -15,8 +15,9 @@ export const revalidate = 30;
 export default async function EvaluationDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const profile = await getCurrentUserProfile();
 
   if (!profile) {
@@ -65,7 +66,7 @@ export default async function EvaluationDetailPage({
       )
     `
     )
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error || !evaluation) {
@@ -115,10 +116,10 @@ export default async function EvaluationDetailPage({
           </div>
           {canEdit && (
             <div className="flex gap-2">
-              <Link href={`/dashboard/evaluations/${params.id}/edit`}>
+              <Link href={`/dashboard/evaluations/${id}/edit`}>
                 <Button variant="outline">수정</Button>
               </Link>
-              <EvaluationDeleteButton evaluationId={params.id} />
+              <EvaluationDeleteButton evaluationId={id} />
             </div>
           )}
         </div>

@@ -8,26 +8,27 @@ import { CompetencyUnitForm } from "@/components/courses/competency-unit-form";
 export default async function EditCompetencyUnitPage({
   params,
 }: {
-  params: { id: string; unitId: string };
+  params: Promise<{ id: string; unitId: string }>;
 }) {
+  const { id, unitId } = await params;
   await requireAdmin();
   const supabase = await createClient();
 
   const { data: unit } = await supabase
     .from("competency_units")
     .select("*")
-    .eq("id", params.unitId)
+    .eq("id", unitId)
     .single();
 
   if (!unit) {
-    redirect(`/dashboard/courses/${params.id}`);
+    redirect(`/dashboard/courses/${id}`);
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <BackButton href={`/dashboard/courses/${params.id}`} />
+      <BackButton href={`/dashboard/courses/${id}`} />
       <h2 className="text-3xl font-bold mb-8">능력단위 수정</h2>
-      <CompetencyUnitForm courseId={params.id} unit={unit} />
+      <CompetencyUnitForm courseId={id} unit={unit} />
     </div>
   );
 }

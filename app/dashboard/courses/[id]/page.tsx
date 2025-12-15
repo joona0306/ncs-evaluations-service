@@ -18,7 +18,7 @@ import { CompetencyUnits } from "@/components/courses/competency-units";
 export default async function CourseDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   try {
     await requireAdmin();
@@ -27,12 +27,13 @@ export default async function CourseDetailPage({
     redirect("/dashboard");
   }
 
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data: course, error } = await supabase
     .from("training_courses")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error) {
@@ -44,7 +45,7 @@ export default async function CourseDetailPage({
   }
 
   if (!course) {
-    console.error("훈련과정을 찾을 수 없습니다. ID:", params.id);
+    console.error("훈련과정을 찾을 수 없습니다. ID:", id);
     redirect("/dashboard/courses");
   }
 
